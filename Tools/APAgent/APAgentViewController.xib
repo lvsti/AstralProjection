@@ -246,7 +246,7 @@
 					<object class="IBUIButton" id="22309685">
 						<reference key="NSNextResponder" ref="774585933"/>
 						<int key="NSvFlags">292</int>
-						<string key="NSFrame">{{124, 160}, {72, 37}}</string>
+						<string key="NSFrame">{{80, 133}, {160, 37}}</string>
 						<reference key="NSSuperview" ref="774585933"/>
 						<bool key="IBUIOpaque">NO</bool>
 						<string key="targetRuntimeIdentifier">IBCocoaTouchFramework</string>
@@ -254,7 +254,7 @@
 						<int key="IBUIContentVerticalAlignment">0</int>
 						<reference key="IBUIFont" ref="875995564"/>
 						<int key="IBUIButtonType">1</int>
-						<string key="IBUINormalTitle">Trigger</string>
+						<string key="IBUINormalTitle">Resend last location</string>
 						<reference key="IBUIHighlightedTitleColor" ref="124346823"/>
 						<object class="NSColor" key="IBUINormalTitleColor">
 							<int key="NSColorSpace">1</int>
@@ -497,6 +497,7 @@
 					<string>24.IBViewBoundsToFrameTransform</string>
 					<string>30.IBPluginDependency</string>
 					<string>37.IBPluginDependency</string>
+					<string>37.IBViewBoundsToFrameTransform</string>
 					<string>6.IBEditorWindowLastContentRect</string>
 					<string>6.IBPluginDependency</string>
 					<string>8.IBPluginDependency</string>
@@ -537,6 +538,9 @@
 					</object>
 					<string>com.apple.InterfaceBuilder.IBCocoaTouchPlugin</string>
 					<string>com.apple.InterfaceBuilder.IBCocoaTouchPlugin</string>
+					<object class="NSAffineTransform">
+						<bytes key="NSTransformStruct">P4AAAL+AAABC+AAAw0MAAA</bytes>
+					</object>
 					<string>{{254, 516}, {320, 480}}</string>
 					<string>com.apple.InterfaceBuilder.IBCocoaTouchPlugin</string>
 					<string>com.apple.InterfaceBuilder.IBCocoaTouchPlugin</string>

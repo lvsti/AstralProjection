@@ -20,6 +20,8 @@
 	BOOL isMonitoring;
 	BOOL isSending;
 	
+	NSDictionary* lastMessage;
+	
 	IBOutlet UITextField* ipAddress;
 	IBOutlet UITextField* port;
 	IBOutlet UIButton* toggleSending;

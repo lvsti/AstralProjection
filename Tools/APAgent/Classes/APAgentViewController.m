@@ -39,6 +39,7 @@ static NSString* const kDateFormat = @"yyyy-MM-dd'T'HH:mm:ss'Z'";
 {
 	[udpConnection release];
 	[locationManager release];
+	[lastMessage release];
     [super dealloc];
 }
 
@@ -77,9 +78,10 @@ static NSString* const kDateFormat = @"yyyy-MM-dd'T'HH:mm:ss'Z'";
 
 - (IBAction)triggerSending
 {
-	[self locationManager:locationManager
-	  didUpdateToLocation:[[CLLocation alloc] initWithLatitude:(random()%180)-90 longitude:(random()%360)-180]
-			 fromLocation:[[CLLocation alloc] initWithLatitude:(random()%180)-90 longitude:(random()%360)-180]];
+	if ( lastMessage )
+	{
+		[udpConnection sendData:[[lastMessage JSONRepresentation] dataUsingEncoding:NSUTF8StringEncoding]];
+	}
 }
 
 
@@ -161,15 +163,19 @@ static NSString* const kDateFormat = @"yyyy-MM-dd'T'HH:mm:ss'Z'";
 		
 		[dateFmt release];
 		
-		NSDictionary* packet = [NSDictionary dictionaryWithObjectsAndKeys:
-								@"update", @"type",
-								[NSDictionary dictionaryWithObjectsAndKeys:
-								 oldDic, @"old",
-								 newDic, @"new",
-								 nil], @"data",
-								nil];
+		NSDictionary* message = [NSDictionary dictionaryWithObjectsAndKeys:
+								 @"update", @"type",
+								 [NSDictionary dictionaryWithObjectsAndKeys:
+								  oldDic, @"old",
+								  newDic, @"new",
+								  nil], @"data",
+								 nil];
 		
-		[udpConnection sendData:[[packet JSONRepresentation] dataUsingEncoding:NSUTF8StringEncoding]];
+		[lastMessage release];
+		lastMessage = [message retain];
+		
+		[udpConnection sendData:[[message JSONRepresentation] dataUsingEncoding:NSUTF8StringEncoding]];
+		NSLog(@"update sent");
 	}
 }
 
