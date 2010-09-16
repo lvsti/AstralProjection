@@ -3,7 +3,6 @@
 //  APAgent
 //
 //  Created by Lvsti on 2010.09.15..
-//  Copyright 2010 Spreadsong, Inc. All rights reserved.
 //
 
 #import <UIKit/UIKit.h>
