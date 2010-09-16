@@ -1,0 +1,88 @@
+//
+//  APHostViewController.m
+//  APHost
+//
+//  Created by Lvsti on 2010.09.16..
+//
+
+#import "APHostViewController.h"
+#import "APGPXDataSource.h"
+#import "APLocationManager.h"
+
+
+@implementation APHostViewController
+
+
+- (id)initWithCoder:(NSCoder*)aDecoder
+{
+	if ( (self = [super initWithCoder:aDecoder]) )
+	{
+		locationManager = [[APLocationManager alloc] init];
+		
+		gpxDataSource = [[APGPXDataSource alloc] initWithURL:[NSURL fileURLWithPath:[[NSBundle mainBundle] pathForResource:@"ashland" ofType:@"gpx"]]];
+		if ( [gpxDataSource cardinalityForDataSet:kAPGPXDataSetTrack] > 7 )
+		{
+			[gpxDataSource setActiveDataSet:kAPGPXDataSetTrack subsetIndex:7];
+		}
+		
+		gpxDataSource.delegate = (APLocationManager*)locationManager;
+		gpxDataSource.timeScale = 30.0;
+		
+		if ( [CLLocationManager locationServicesEnabled] )
+		{
+			locationManager.delegate = self;
+		}
+    }
+    return self;
+}
+
+
+- (void)dealloc
+{
+	[gpxDataSource stop];
+	[gpxDataSource release];
+	
+	[locationManager stopUpdatingLocation];
+	[locationManager release];
+	
+    [super dealloc];
+}
+
+
+- (IBAction)toggleLocationUpdates
+{
+	if ( !isUpdatingLocation )
+	{
+		[toggleUpdatesButton setTitle:@"Stop" forState:UIControlStateNormal];
+		[locationManager startUpdatingLocation];
+		[gpxDataSource start];
+	}
+	else
+	{
+		[toggleUpdatesButton setTitle:@"Stop" forState:UIControlStateNormal];
+		[gpxDataSource stop];
+		[locationManager stopUpdatingLocation];
+	}
+	
+	isUpdatingLocation = !isUpdatingLocation;
+}
+
+
+#pragma mark -
+#pragma mark from CLLocationManagerDelegate:
+
+- (void)locationManager:(CLLocationManager *)manager
+	didUpdateToLocation:(CLLocation *)newLocation
+		   fromLocation:(CLLocation *)oldLocation
+{
+	latitude.text = [NSString stringWithFormat:@"%3.5f",newLocation.coordinate.latitude];
+	longitude.text = [NSString stringWithFormat:@"%3.5f",newLocation.coordinate.longitude];
+}
+
+
+- (void)locationManager:(CLLocationManager *)manager
+	   didFailWithError:(NSError *)error
+{
+}
+
+@end
