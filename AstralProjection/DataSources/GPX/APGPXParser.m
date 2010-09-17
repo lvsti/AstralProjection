@@ -16,7 +16,8 @@ NSString* const kGPXPointTime = @"time";
 
 
 /// URI specifying the GPX namespace
-static NSString* const kGPXNamespaceURI = @"http://www.topografix.com/GPX/1/0";
+static NSString* const kGPX10NamespaceURI = @"http://www.topografix.com/GPX/1/0";
+static NSString* const kGPX11NamespaceURI = @"http://www.topografix.com/GPX/1/1";
 
 /// GPX date format (xsd:dateTime)
 static NSString* const kGPXDateFormat = @"yyyy-MM-dd'T'HH:mm:ss'Z'";
@@ -197,8 +198,9 @@ NSInteger GPXTrackSegmentSortByTimestampAsc( id aLeft, id aRight, void* aContext
 	{
 		case kGPXParsingLevelDocument:
 		{
-			if ( [aNamespaceURI isEqualToString:kGPXNamespaceURI] &&
-				[aElementName isEqualToString:kGPXElemRoot] )
+			if ( [aNamespaceURI isEqualToString:kGPX10NamespaceURI] || 
+				 [aNamespaceURI isEqualToString:kGPX11NamespaceURI] &&
+				 [aElementName isEqualToString:kGPXElemRoot] )
 			{
 				// GPX body starts
 				parsingLevel = kGPXParsingLevelBody;
