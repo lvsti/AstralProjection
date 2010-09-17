@@ -28,10 +28,15 @@
 		gpxDataSource.delegate = (APLocationManager*)locationManager;
 		gpxDataSource.timeScale = 30.0;
 		
+		// you need to skip this check on the simulator
+#ifndef TARGET_IPHONE_SIMULATOR
 		if ( [CLLocationManager locationServicesEnabled] )
 		{
+#endif			
 			locationManager.delegate = self;
+#ifndef TARGET_IPHONE_SIMULATOR			
 		}
+#endif
     }
     return self;
 }
@@ -59,7 +64,7 @@
 	}
 	else
 	{
-		[toggleUpdatesButton setTitle:@"Stop" forState:UIControlStateNormal];
+		[toggleUpdatesButton setTitle:@"Start" forState:UIControlStateNormal];
 		[gpxDataSource stop];
 		[locationManager stopUpdatingLocation];
 	}
