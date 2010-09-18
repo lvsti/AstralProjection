@@ -18,6 +18,8 @@
 
 @implementation APLocationManager
 
+@synthesize location = lastRegisteredLocation;
+
 
 // -----------------------------------------------------------------------------
 // APLocationManager::startUpdatingLocation
@@ -46,6 +48,9 @@
 // -----------------------------------------------------------------------------
 - (void)didUpdateToLocation:(CLLocation*)aNewLocation fromLocation:(CLLocation*)aOldLocation
 {
+	[lastRegisteredLocation release];
+	lastRegisteredLocation = [aNewLocation retain];
+	
 	if ( callerThread )
 	{
 		if ( [self.delegate respondsToSelector:@selector(locationManager:didUpdateToLocation:fromLocation:)] )

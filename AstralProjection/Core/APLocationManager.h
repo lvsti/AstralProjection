@@ -13,7 +13,9 @@
 @interface APLocationManager : CLLocationManager <APLocationDataDelegate>
 {
 	NSThread* callerThread;
+	CLLocation* lastRegisteredLocation;
 }
 
+@property (readonly, nonatomic) CLLocation* location;
 
 @end
