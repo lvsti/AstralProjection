@@ -291,15 +291,16 @@ typedef enum
 				progress = [aDate timeIntervalSinceDate:[fromPoint objectForKey:kGPXPointTime]] / timeDelta;
 			}
 			
-			latitude = [[fromPoint objectForKey:kGPXPointLatitude] doubleValue] + 
-							progress * [[toPoint objectForKey:kGPXPointLatitude] doubleValue];
-			longitude = [[fromPoint objectForKey:kGPXPointLongitude] doubleValue] +
-							progress * [[toPoint objectForKey:kGPXPointLongitude] doubleValue];
+			CLLocationDegrees fromValue;
+			fromValue = [[fromPoint objectForKey:kGPXPointLatitude] doubleValue];
+			latitude = fromValue + progress * ([[toPoint objectForKey:kGPXPointLatitude] doubleValue] - fromValue);
+			fromValue = [[fromPoint objectForKey:kGPXPointLongitude] doubleValue];
+			longitude =  fromValue + progress * ([[toPoint objectForKey:kGPXPointLongitude] doubleValue] - fromValue);
 			
 			if ( [fromPoint objectForKey:kGPXPointAltitude] )
 			{
-				altitude = [[fromPoint objectForKey:kGPXPointAltitude] doubleValue] +
-								progress * [[toPoint objectForKey:kGPXPointAltitude] doubleValue];
+				CLLocationDistance fromAlt = [[fromPoint objectForKey:kGPXPointAltitude] doubleValue];
+				altitude = fromAlt + progress * ([[toPoint objectForKey:kGPXPointAltitude] doubleValue] - fromAlt);
 
 				vAccuracy = kAPGPXDefaultVerticalAccuracy;
 			}
