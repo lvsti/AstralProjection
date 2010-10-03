@@ -36,6 +36,8 @@
 - (void)stopUpdatingLocation
 {
 	callerThread = nil;
+	[lastRegisteredLocation release];
+	lastRegisteredLocation = nil;
 }
 
 
@@ -48,27 +50,30 @@
 // -----------------------------------------------------------------------------
 - (void)didUpdateToLocation:(CLLocation*)aNewLocation fromLocation:(CLLocation*)aOldLocation
 {
-	[lastRegisteredLocation release];
-	lastRegisteredLocation = [aNewLocation retain];
-	
-	if ( callerThread )
+	if ( !aOldLocation || [aNewLocation distanceFromLocation:aOldLocation] > self.distanceFilter )
 	{
-		if ( [self.delegate respondsToSelector:@selector(locationManager:didUpdateToLocation:fromLocation:)] )
+		[lastRegisteredLocation release];
+		lastRegisteredLocation = [aNewLocation retain];
+		
+		if ( callerThread )
 		{
-			if ( callerThread == [NSThread currentThread] )
+			if ( [self.delegate respondsToSelector:@selector(locationManager:didUpdateToLocation:fromLocation:)] )
 			{
-				[self.delegate locationManager:self
-						   didUpdateToLocation:aNewLocation
-								  fromLocation:aOldLocation];
-			}
-			else
-			{
-				[self performSelector:@selector(updateLocationDelegateWithData:)
-							 onThread:callerThread
-						   withObject:[NSArray arrayWithObjects:aNewLocation,aOldLocation,nil]
-						waitUntilDone:YES];
-			}
+				if ( callerThread == [NSThread currentThread] )
+				{
+					[self.delegate locationManager:self
+							   didUpdateToLocation:aNewLocation
+									  fromLocation:aOldLocation];
+				}
+				else
+				{
+					[self performSelector:@selector(updateLocationDelegateWithData:)
+								 onThread:callerThread
+							   withObject:[NSArray arrayWithObjects:aNewLocation,aOldLocation,nil]
+							waitUntilDone:YES];
+				}
 
+			}
 		}
 	}
 }
