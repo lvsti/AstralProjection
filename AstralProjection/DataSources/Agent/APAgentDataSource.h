@@ -11,11 +11,11 @@
 
 @interface APAgentDataSource : NSObject <APLocationDataSource>
 {
-	id<APLocationDataDelegate> delegate;
+	id<APLocationDataDelegate> locationDataDelegate;
 	int scoutSocket;
 	NSConditionLock* threadLock;
 }
 
-@property (nonatomic, assign) id<APLocationDataDelegate> delegate;
+@property (nonatomic, assign) id<APLocationDataDelegate> locationDataDelegate;
 
 @end

@@ -14,6 +14,7 @@
 
 #import "JSON.h"
 #import "APLocationDataDelegate.h"
+#import "APLocation.h"
 
 
 static NSString* const kDateFormat = @"yyyy-MM-dd'T'HH:mm:ss'Z'";
@@ -38,7 +39,7 @@ static const NSInteger kThreadStopped = 2;
 
 @implementation APAgentDataSource
 
-@synthesize delegate;
+@synthesize locationDataDelegate;
 
 
 // -----------------------------------------------------------------------------
@@ -104,9 +105,9 @@ static const NSInteger kThreadStopped = 2;
 
 
 // -----------------------------------------------------------------------------
-// APAgentDataSource::start
+// APAgentDataSource::startGeneratingLocationEvents
 // -----------------------------------------------------------------------------
-- (void)start
+- (void)startGeneratingLocationEvents
 {
 	[threadLock lock];
 	if ( [threadLock condition] == kThreadStopped )
@@ -125,9 +126,9 @@ static const NSInteger kThreadStopped = 2;
 
 
 // -----------------------------------------------------------------------------
-// APAgentDataSource::stop
+// APAgentDataSource::stopGeneratingLocationEvents
 // -----------------------------------------------------------------------------
-- (void)stop
+- (void)stopGeneratingLocationEvents
 {
 	[threadLock lock];
 	if ( [threadLock condition] == kThreadExecuting )
@@ -237,22 +238,26 @@ static const NSInteger kThreadStopped = 2;
 									   [[oldLoc objectForKey:@"lon"] doubleValue]);
 	
 	
-	CLLocation* oldLocation = [[CLLocation alloc] initWithCoordinate:coord
+	APLocation* oldLocation = [[APLocation alloc] initWithCoordinate:coord
 															altitude:[[oldLoc objectForKey:@"alt"] doubleValue]
 												  horizontalAccuracy:[[oldLoc objectForKey:@"hacc"] doubleValue]
 													verticalAccuracy:[[oldLoc objectForKey:@"vacc"] doubleValue]
 														   timestamp:[dateFmt dateFromString:[oldLoc objectForKey:@"time"]]];
+	oldLocation.speed = [[oldLoc objectForKey:@"spd"] doubleValue];
+	oldLocation.course = [[oldLoc objectForKey:@"crs"] doubleValue];
 	
 	NSDictionary* newLoc = [aMessage objectForKey:@"new"];
 	coord = CLLocationCoordinate2DMake([[newLoc objectForKey:@"lat"] doubleValue],
 									   [[newLoc objectForKey:@"lon"] doubleValue]);
-	CLLocation* newLocation = [[CLLocation alloc] initWithCoordinate:coord
+	APLocation* newLocation = [[APLocation alloc] initWithCoordinate:coord
 															altitude:[[newLoc objectForKey:@"alt"] doubleValue]
 												  horizontalAccuracy:[[newLoc objectForKey:@"hacc"] doubleValue]
 													verticalAccuracy:[[newLoc objectForKey:@"vacc"] doubleValue]
 														   timestamp:[dateFmt dateFromString:[newLoc objectForKey:@"time"]]];
+	newLocation.speed = [[newLoc objectForKey:@"spd"] doubleValue];
+	newLocation.course = [[newLoc objectForKey:@"crs"] doubleValue];
 	
-	[delegate didUpdateToLocation:newLocation fromLocation:oldLocation];	
+	[locationDataDelegate didUpdateToLocation:newLocation fromLocation:oldLocation];	
 	
 	[dateFmt release];
 }
@@ -267,7 +272,7 @@ static const NSInteger kThreadStopped = 2;
 										 code:[[aMessage objectForKey:@"code"] integerValue]
 									 userInfo:[aMessage objectForKey:@"userInfo"]];
 	
-	[delegate didFailToUpdateLocationWithError:error];
+	[locationDataDelegate didFailToUpdateLocationWithError:error];
 }
 
 

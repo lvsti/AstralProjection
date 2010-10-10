@@ -150,6 +150,8 @@ static NSString* const kDateFormat = @"yyyy-MM-dd'T'HH:mm:ss'Z'";
 								[NSNumber numberWithDouble:aOldLocation.horizontalAccuracy], @"hacc",
 								[NSNumber numberWithDouble:aOldLocation.verticalAccuracy], @"vacc",
 								[dateFmt stringFromDate:aOldLocation.timestamp], @"time",
+								[NSNumber numberWithDouble:aOldLocation.speed], @"spd",
+								[NSNumber numberWithDouble:aOldLocation.course], @"crs",
 								nil];
 		
 		NSDictionary* newDic = [NSDictionary dictionaryWithObjectsAndKeys:
@@ -159,6 +161,8 @@ static NSString* const kDateFormat = @"yyyy-MM-dd'T'HH:mm:ss'Z'";
 								[NSNumber numberWithDouble:aNewLocation.horizontalAccuracy], @"hacc",
 								[NSNumber numberWithDouble:aNewLocation.verticalAccuracy], @"vacc",
 								[dateFmt stringFromDate:aNewLocation.timestamp], @"time",
+								[NSNumber numberWithDouble:aNewLocation.speed], @"spd",
+								[NSNumber numberWithDouble:aNewLocation.course], @"crs",
 								nil];
 		
 		[dateFmt release];
