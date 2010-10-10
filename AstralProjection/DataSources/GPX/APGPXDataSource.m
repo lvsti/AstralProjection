@@ -269,6 +269,8 @@ typedef enum
 	CLLocationDegrees longitude = 0.0;
 	CLLocationDistance altitude = 0.0;
 	CLLocationAccuracy vAccuracy = kAPGPXInvalidAccuracy;
+	CLLocationSpeed speed = -1.0;
+	CLLocationDegrees course = -1.0;
 	
 	switch ( aMethod )
 	{
@@ -276,11 +278,13 @@ typedef enum
 		{
 			latitude = [[fromPoint objectForKey:kGPXPointLatitude] doubleValue];
 			longitude = [[fromPoint objectForKey:kGPXPointLongitude] doubleValue];
+			
 			if ( [fromPoint objectForKey:kGPXPointAltitude] )
 			{
 				altitude = [[fromPoint objectForKey:kGPXPointAltitude] doubleValue];
 				vAccuracy = kAPGPXDefaultVerticalAccuracy;
 			}
+
 			break;
 		}
 		
@@ -307,6 +311,7 @@ typedef enum
 
 				vAccuracy = kAPGPXDefaultVerticalAccuracy;
 			}
+			
 			break;
 		}
 	}
@@ -316,6 +321,44 @@ typedef enum
 											   horizontalAccuracy:kAPGPXDefaultHorizontalAccuracy
 												 verticalAccuracy:vAccuracy
 														timestamp:aDate];
+
+	if ( toPoint != fromPoint )
+	{
+		APLocation* fromLocation = [[APLocation alloc] initWithLatitude:[[fromPoint objectForKey:kGPXPointLatitude] doubleValue]
+															  longitude:[[fromPoint objectForKey:kGPXPointLongitude] doubleValue]];
+		APLocation* toLocation = [[APLocation alloc] initWithLatitude:[[toPoint objectForKey:kGPXPointLatitude] doubleValue]
+															longitude:[[toPoint objectForKey:kGPXPointLongitude] doubleValue]];
+
+		// calculate speed if applicable
+		NSTimeInterval timeDelta = [[toPoint objectForKey:kGPXPointTime] timeIntervalSinceDate:[fromPoint objectForKey:kGPXPointTime]];
+		
+		if ( timeDelta > 0.0 )
+		{
+			speed = [toLocation distanceFromLocation:fromLocation] / timeDelta;
+		}
+
+		// calculate course
+		// NOTE: This calculation is NOT ACCURATE because it works on a 2D flat projection of the globe.
+		//       Expect it to fail close to the poles and when crossing -180 W / 180 E. You have been warned.
+		
+		// alpha is zero towards east and grows counterclockwise, radians
+		double alpha = atan2(toLocation.coordinate.latitude - fromLocation.coordinate.latitude,
+							 toLocation.coordinate.longitude - fromLocation.coordinate.longitude);
+		
+		// course is zero towards the north and grows clockwise, degrees
+		course = -(alpha*180.0/M_PI - 90.0);
+		if ( course < 0 )
+		{
+			course += 360.0;
+		}
+
+		[toLocation release];
+		[fromLocation release];
+	}
+
+	location.speed = speed;
+	location.course = course;
+
 	return [location autorelease];
 }
 
@@ -326,18 +369,28 @@ typedef enum
 - (APLocation*)locationWithPointAtIndex:(NSUInteger)aIndex
 {
 	NSDictionary* point = nil;
+	NSDictionary* toPoint = nil;
 	
 	switch ( activeDataSet )
 	{
 		case kAPGPXDataSetWaypoint:
 		{
 			point = [waypoints objectAtIndex:aIndex];
+			if ( aIndex + 1 < [waypoints count] )
+			{
+				toPoint = [waypoints objectAtIndex:aIndex+1];
+			}
 			break;
 		}
 			
 		case kAPGPXDataSetRoute:
 		{
 			point = [[routes objectAtIndex:activeSubsetIndex] objectAtIndex:aIndex];
+			if ( aIndex + 1 < [[routes objectAtIndex:activeSubsetIndex] count] )
+			{
+				toPoint = [[routes objectAtIndex:activeSubsetIndex] objectAtIndex:aIndex+1];
+			}
+			
 			break;
 		}
 			
@@ -352,6 +405,10 @@ typedef enum
 				if ( aIndex < numPoints + [points count] )
 				{
 					point = [points objectAtIndex:aIndex-numPoints];
+					if ( aIndex + 1 < [points count] )
+					{
+						toPoint = [points objectAtIndex:aIndex+1];
+					}
 					break;
 				}
 
@@ -371,6 +428,8 @@ typedef enum
 	CLLocationDegrees longitude = [[point objectForKey:kGPXPointLongitude] doubleValue];
 	CLLocationDistance altitude = 0.0;
 	CLLocationAccuracy vAccuracy = kAPGPXInvalidAccuracy;
+	CLLocationSpeed speed = -1.0;
+	CLLocationDegrees course = -1.0;
 	
 	if ( [point objectForKey:kGPXPointAltitude] )
 	{
@@ -383,6 +442,41 @@ typedef enum
 											   horizontalAccuracy:kAPGPXDefaultHorizontalAccuracy
 												 verticalAccuracy:vAccuracy
 														timestamp:[point objectForKey:kGPXPointTime]];
+	
+	if ( toPoint )
+	{
+		APLocation* toLocation = [[APLocation alloc] initWithLatitude:[[toPoint objectForKey:kGPXPointLatitude] doubleValue]
+															longitude:[[toPoint objectForKey:kGPXPointLongitude] doubleValue]];
+		
+		// calculate speed if applicable
+		NSTimeInterval timeDelta = [[toPoint objectForKey:kGPXPointTime] timeIntervalSinceDate:[point objectForKey:kGPXPointTime]];
+		
+		if ( timeDelta > 0.0 )
+		{
+			speed = [toLocation distanceFromLocation:location] / timeDelta;
+		}
+		
+		// calculate course
+		// NOTE: This calculation is NOT ACCURATE because it works on a 2D flat projection of the globe.
+		//       Expect it to fail close to the poles and when crossing -180 W / 180 E. You have been warned.
+		
+		// alpha is zero towards east and grows counterclockwise, radians
+		double alpha = atan2(toLocation.coordinate.latitude - location.coordinate.latitude,
+							 toLocation.coordinate.longitude - location.coordinate.longitude);
+		
+		// course is zero towards the north and grows clockwise, degrees
+		course = -(alpha*180.0/M_PI - 90.0);
+		if ( course < 0 )
+		{
+			course += 360.0;
+		}
+		
+		[toLocation release];
+	}
+	
+	location.speed = speed;
+	location.course = course;
+	
 	return [location autorelease];
 }
 
