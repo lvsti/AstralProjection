@@ -513,12 +513,17 @@ typedef enum
 	double safeTimeScale = timeScale? timeScale: 1.0;
 	NSTimeInterval safeEventFrequency = (eventFrequency >= 0.0)? eventFrequency: 0.0;
 	
+	NSAutoreleasePool* nestedPool = nil;
+	
 	NSDate* start = [NSDate date];
 	
 	[threadLock lock];
 	while ( [threadLock condition] != kThreadStopping )
 	{
 		[threadLock unlock];
+		
+		[nestedPool release];
+		nestedPool = [[NSAutoreleasePool alloc] init];
 		
 		if ( safeEventFrequency > 0 )
 		{
@@ -550,26 +555,34 @@ typedef enum
 				endPointPassed = YES;
 			}
 			
+			[oldLocation release];
 			oldLocation = newLocation;
-			newLocation = [self locationForDate:virtualNow 
-							  withInterpolation:kAPGPXInterpolationMethodLinear];
+			newLocation = [[self locationForDate:virtualNow 
+							   withInterpolation:kAPGPXInterpolationMethodLinear] retain];
 			NSLog(@"%@",newLocation);
 			
 			// notify the location manager
 			[locationDataDelegate didUpdateToLocation:newLocation fromLocation:oldLocation];
 
+			// get rid of garbage before we go to sleep
+			[nestedPool release];
+			nestedPool = nil;
+
 			// sleep until next firing time
-			if ( ![threadLock lockWhenCondition:kThreadStopping
-										   beforeDate:[NSDate dateWithTimeInterval:safeEventFrequency sinceDate:now]] )
+			NSDate* scheduleTime = [[NSDate alloc] initWithTimeInterval:safeEventFrequency sinceDate:now];
+			if ( ![threadLock lockWhenCondition:kThreadStopping beforeDate:scheduleTime] )
 			{
 				[threadLock lock];
 			}
+			
+			[scheduleTime release];
 		}
 		else
 		{
 			// event frequency follows actual data set events
+			[oldLocation release];
 			oldLocation = newLocation;
-			newLocation = [self locationWithPointAtIndex:pointIndex];
+			newLocation = [[self locationWithPointAtIndex:pointIndex] retain];
 			
 			NSLog(@"%@",newLocation);
 			if ( !newLocation )
@@ -588,10 +601,14 @@ typedef enum
 			NSDate* virtualTimestamp = newLocation.timestamp;
 			NSTimeInterval virtualElapsed = [virtualTimestamp timeIntervalSinceDate:virtualStart];
 			NSTimeInterval elapsed = virtualElapsed / safeTimeScale;
-			NSDate* scheduleTime = [NSDate dateWithTimeInterval:elapsed sinceDate:start];
+			NSDate* scheduleTime = [[NSDate alloc] initWithTimeInterval:elapsed sinceDate:start];
 			
 			if ( [scheduleTime timeIntervalSinceDate:[NSDate date]] > 0 )
 			{
+				// get rid of garbage before we go to sleep
+				[nestedPool release];
+				nestedPool = nil;
+				
 				if ( ![threadLock lockWhenCondition:kThreadStopping beforeDate:scheduleTime] )
 				{
 					[threadLock lock];
@@ -602,11 +619,16 @@ typedef enum
 				[threadLock lock];
 			}
 
+			[scheduleTime release];
+
 			if ( [threadLock condition] != kThreadStopping )
 			{
 				[threadLock unlock];
 				
+				// wrap the delegate call into another autorelease pool because nestedPool can already be released here
+				NSAutoreleasePool* delegatePool = [[NSAutoreleasePool alloc] init];
 				[locationDataDelegate didUpdateToLocation:newLocation fromLocation:oldLocation];
+				[delegatePool release];
 				
 				[threadLock lock];
 			}
@@ -617,6 +639,9 @@ typedef enum
 	[threadLock unlock];
 	
 	// put cleanup here
+	[nestedPool release];
+	[oldLocation release];
+	[newLocation release];
 	
 	[threadLock lock];
 	[threadLock unlockWithCondition:kThreadStopped];
