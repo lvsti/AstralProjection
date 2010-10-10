@@ -375,6 +375,11 @@ typedef enum
 	{
 		case kAPGPXDataSetWaypoint:
 		{
+			if ( aIndex >= [waypoints count] )
+			{
+				break;
+			}
+			
 			point = [waypoints objectAtIndex:aIndex];
 			if ( aIndex + 1 < [waypoints count] )
 			{
@@ -385,6 +390,11 @@ typedef enum
 			
 		case kAPGPXDataSetRoute:
 		{
+			if ( aIndex >= [[routes objectAtIndex:activeSubsetIndex] count] )
+			{
+				break;
+			}
+
 			point = [[routes objectAtIndex:activeSubsetIndex] objectAtIndex:aIndex];
 			if ( aIndex + 1 < [[routes objectAtIndex:activeSubsetIndex] count] )
 			{
@@ -405,9 +415,9 @@ typedef enum
 				if ( aIndex < numPoints + [points count] )
 				{
 					point = [points objectAtIndex:aIndex-numPoints];
-					if ( aIndex + 1 < [points count] )
+					if ( aIndex-numPoints+1 < [points count] )
 					{
-						toPoint = [points objectAtIndex:aIndex+1];
+						toPoint = [points objectAtIndex:aIndex-numPoints+1];
 					}
 					break;
 				}
