@@ -20,6 +20,8 @@
 		E804765A1242B723001B2346 /* APGPXDataSource.m in Sources */ = {isa = PBXBuildFile; fileRef = E80476551242B723001B2346 /* APGPXDataSource.m */; };
 		E804765B1242B723001B2346 /* APGPXParser.m in Sources */ = {isa = PBXBuildFile; fileRef = E80476571242B723001B2346 /* APGPXParser.m */; };
 		E804765D1242B764001B2346 /* ashland.gpx in Resources */ = {isa = PBXBuildFile; fileRef = E804765C1242B764001B2346 /* ashland.gpx */; };
+		E8D84A141261C04100A2EBEF /* APLocation.m in Sources */ = {isa = PBXBuildFile; fileRef = E8D84A131261C04100A2EBEF /* APLocation.m */; };
+		E8D84A171261C07E00A2EBEF /* APHeading.m in Sources */ = {isa = PBXBuildFile; fileRef = E8D84A161261C07E00A2EBEF /* APHeading.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -46,6 +48,12 @@
 		E80476561242B723001B2346 /* APGPXParser.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = APGPXParser.h; sourceTree = "<group>"; };
 		E80476571242B723001B2346 /* APGPXParser.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = APGPXParser.m; sourceTree = "<group>"; };
 		E804765C1242B764001B2346 /* ashland.gpx */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; path = ashland.gpx; sourceTree = "<group>"; };
+		E8D84A101261BF5000A2EBEF /* APHeadingDataDelegate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = APHeadingDataDelegate.h; sourceTree = "<group>"; };
+		E8D84A111261BF5000A2EBEF /* APHeadingDataSource.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = APHeadingDataSource.h; sourceTree = "<group>"; };
+		E8D84A121261C04100A2EBEF /* APLocation.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = APLocation.h; sourceTree = "<group>"; };
+		E8D84A131261C04100A2EBEF /* APLocation.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = APLocation.m; sourceTree = "<group>"; };
+		E8D84A151261C07E00A2EBEF /* APHeading.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = APHeading.h; sourceTree = "<group>"; };
+		E8D84A161261C07E00A2EBEF /* APHeading.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = APHeading.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -139,6 +147,12 @@
 		E804764A1242B723001B2346 /* Core */ = {
 			isa = PBXGroup;
 			children = (
+				E8D84A151261C07E00A2EBEF /* APHeading.h */,
+				E8D84A161261C07E00A2EBEF /* APHeading.m */,
+				E8D84A101261BF5000A2EBEF /* APHeadingDataDelegate.h */,
+				E8D84A111261BF5000A2EBEF /* APHeadingDataSource.h */,
+				E8D84A121261C04100A2EBEF /* APLocation.h */,
+				E8D84A131261C04100A2EBEF /* APLocation.m */,
 				E804764B1242B723001B2346 /* APLocationDataDelegate.h */,
 				E804764C1242B723001B2346 /* APLocationDataSource.h */,
 				E804764D1242B723001B2346 /* APLocationManager.h */,
@@ -234,6 +248,8 @@
 				E80476581242B723001B2346 /* APLocationManager.m in Sources */,
 				E804765A1242B723001B2346 /* APGPXDataSource.m in Sources */,
 				E804765B1242B723001B2346 /* APGPXParser.m in Sources */,
+				E8D84A141261C04100A2EBEF /* APLocation.m in Sources */,
+				E8D84A171261C07E00A2EBEF /* APHeading.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

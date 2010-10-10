@@ -30,12 +30,12 @@ typedef enum
 	NSTimeInterval eventFrequency;
 	NSConditionLock* threadLock;
 	
-	id<APLocationDataDelegate> delegate;
+	id<APLocationDataDelegate> locationDataDelegate;
 }
 
 @property (nonatomic, assign) double timeScale;
 @property (nonatomic, assign) NSTimeInterval eventFrequency;
-@property (nonatomic, assign) id<APLocationDataDelegate> delegate;
+@property (nonatomic, assign) id<APLocationDataDelegate> locationDataDelegate;
 
 - (id)initWithURL:(NSURL*)aUrl;
 

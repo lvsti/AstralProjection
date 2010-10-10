@@ -7,11 +7,14 @@
 
 #import "APLocationManager.h"
 #import "APLocationDataSource.h"
+#import "APLocation.h"
+#import "APHeading.h"
 
 
 @interface APLocationManager ()
 - (void)updateLocationDelegateWithData:(NSArray*)aLocationData;
 - (void)updateLocationDelegateWithError:(NSError*)aError;
+- (void)updateHeadingDelegateWithHeading:(APHeading*)aHeading;
 @end
 
 
@@ -19,6 +22,7 @@
 @implementation APLocationManager
 
 @synthesize location = lastRegisteredLocation;
+@synthesize heading = lastRegisteredHeading;
 
 
 // -----------------------------------------------------------------------------
@@ -26,7 +30,7 @@
 // -----------------------------------------------------------------------------
 - (void)startUpdatingLocation
 {
-	callerThread = [NSThread currentThread];
+	locationThread = [NSThread currentThread];
 }
 
 
@@ -35,9 +39,25 @@
 // -----------------------------------------------------------------------------
 - (void)stopUpdatingLocation
 {
-	callerThread = nil;
-	[lastRegisteredLocation release];
-	lastRegisteredLocation = nil;
+	locationThread = nil;
+}
+
+
+// -----------------------------------------------------------------------------
+// APLocationManager::startUpdatingHeading
+// -----------------------------------------------------------------------------
+- (void)startUpdatingHeading
+{
+	headingThread = [NSThread currentThread];
+}
+
+
+// -----------------------------------------------------------------------------
+// APLocationManager::stopUpdatingHeading
+// -----------------------------------------------------------------------------
+- (void)stopUpdatingHeading
+{
+	headingThread = nil;
 }
 
 
@@ -48,18 +68,20 @@
 // -----------------------------------------------------------------------------
 // APLocationManager::didUpdateToLocation:fromLocation:
 // -----------------------------------------------------------------------------
-- (void)didUpdateToLocation:(CLLocation*)aNewLocation fromLocation:(CLLocation*)aOldLocation
+- (void)didUpdateToLocation:(APLocation*)aNewLocation fromLocation:(APLocation*)aOldLocation
 {
-	if ( !aOldLocation || [aNewLocation distanceFromLocation:aOldLocation] > self.distanceFilter )
+	if ( !aOldLocation || 
+		 self.distanceFilter == kCLDistanceFilterNone ||
+		 [aNewLocation distanceFromLocation:aOldLocation] >= ABS(self.distanceFilter) )
 	{
 		[lastRegisteredLocation release];
 		lastRegisteredLocation = [aNewLocation retain];
 		
-		if ( callerThread )
+		if ( locationThread )
 		{
 			if ( [self.delegate respondsToSelector:@selector(locationManager:didUpdateToLocation:fromLocation:)] )
 			{
-				if ( callerThread == [NSThread currentThread] )
+				if ( locationThread == [NSThread currentThread] )
 				{
 					[self.delegate locationManager:self
 							   didUpdateToLocation:aNewLocation
@@ -68,7 +90,7 @@
 				else
 				{
 					[self performSelector:@selector(updateLocationDelegateWithData:)
-								 onThread:callerThread
+								 onThread:locationThread
 							   withObject:[NSArray arrayWithObjects:aNewLocation,aOldLocation,nil]
 							waitUntilDone:YES];
 				}
@@ -95,18 +117,18 @@
 // -----------------------------------------------------------------------------
 - (void)didFailToUpdateLocationWithError:(NSError*)aError
 {
-	if ( callerThread )
+	if ( locationThread )
 	{
 		if ( [self.delegate respondsToSelector:@selector(locationManager:didFailWithError:)] )
 		{
-			if ( callerThread == [NSThread currentThread] )
+			if ( locationThread == [NSThread currentThread] )
 			{
 				[self.delegate locationManager:self didFailWithError:aError];
 			}
 			else
 			{
 				[self performSelector:@selector(updateLocationDelegateWithError:)
-							 onThread:callerThread
+							 onThread:locationThread
 						   withObject:aError
 						waitUntilDone:NO];
 			}
@@ -123,5 +145,50 @@
 	[self.delegate locationManager:self didFailWithError:aError];
 }
 
+
+#pragma mark -
+#pragma mark from APHeadingDataDelegate:
+
+
+// -----------------------------------------------------------------------------
+// APLocationManager::didUpdateToHeading:
+// -----------------------------------------------------------------------------
+- (void)didUpdateToHeading:(APHeading*)aNewHeading
+{
+	if ( !lastRegisteredHeading || 
+		 self.headingFilter == kCLHeadingFilterNone ||
+		 ABS(((CLHeading*)aNewHeading).magneticHeading - lastRegisteredHeading.magneticHeading) >= ABS(self.headingFilter) )
+	{
+		[lastRegisteredHeading release];
+		lastRegisteredHeading = [aNewHeading retain];
+		
+		if ( headingThread )
+		{
+			if ( [self.delegate respondsToSelector:@selector(locationManager:didUpdateHeading:)] )
+			{
+				if ( headingThread == [NSThread currentThread] )
+				{
+					[self.delegate locationManager:self didUpdateHeading:(CLHeading*)aNewHeading];
+				}
+				else
+				{
+					[self performSelector:@selector(updateHeadingDelegateWithHeading:)
+										  onThread:headingThread
+										withObject:aNewHeading
+									 waitUntilDone:YES];
+				}
+			}
+		}
+	}
+}
+
+
+// -----------------------------------------------------------------------------
+// APLocationManager::updateHeadingDelegateWithHeading:
+// -----------------------------------------------------------------------------
+- (void)updateHeadingDelegateWithHeading:(APHeading*)aHeading
+{
+	[self.delegate locationManager:self didUpdateHeading:(CLHeading*)aHeading];
+}
 
 @end

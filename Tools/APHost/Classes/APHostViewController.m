@@ -25,7 +25,7 @@
 			[gpxDataSource setActiveDataSet:kAPGPXDataSetTrack subsetIndex:7];
 		}
 		
-		gpxDataSource.delegate = (APLocationManager*)locationManager;
+		gpxDataSource.locationDataDelegate = (APLocationManager*)locationManager;
 		gpxDataSource.timeScale = 30.0;
 		
 		// you need to skip this check on the simulator
@@ -44,7 +44,7 @@
 
 - (void)dealloc
 {
-	[gpxDataSource stop];
+	[gpxDataSource stopGeneratingLocationEvents];
 	[gpxDataSource release];
 	
 	[locationManager stopUpdatingLocation];
@@ -60,12 +60,12 @@
 	{
 		[toggleUpdatesButton setTitle:@"Stop" forState:UIControlStateNormal];
 		[locationManager startUpdatingLocation];
-		[gpxDataSource start];
+		[gpxDataSource startGeneratingLocationEvents];
 	}
 	else
 	{
 		[toggleUpdatesButton setTitle:@"Start" forState:UIControlStateNormal];
-		[gpxDataSource stop];
+		[gpxDataSource stopGeneratingLocationEvents];
 		[locationManager stopUpdatingLocation];
 	}
 	

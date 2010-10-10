@@ -7,10 +7,11 @@
 
 #import <Foundation/Foundation.h>
 
+@class APLocation;
 
 @protocol APLocationDataDelegate <NSObject>
 
-- (void)didUpdateToLocation:(CLLocation*)aNewLocation fromLocation:(CLLocation*)aOldLocation;
+- (void)didUpdateToLocation:(APLocation*)aNewLocation fromLocation:(APLocation*)aOldLocation;
 - (void)didFailToUpdateLocationWithError:(NSError*)aError;
 
 @end

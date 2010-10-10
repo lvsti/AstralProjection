@@ -8,14 +8,19 @@
 #import <Foundation/Foundation.h>
 #import <CoreLocation/CoreLocation.h>
 #import "APLocationDataDelegate.h"
+#import "APHeadingDataDelegate.h"
 
-
-@interface APLocationManager : CLLocationManager <APLocationDataDelegate>
+@interface APLocationManager : CLLocationManager <APLocationDataDelegate,
+												  APHeadingDataDelegate>
 {
-	NSThread* callerThread;
+	NSThread* locationThread;
 	CLLocation* lastRegisteredLocation;
+
+	NSThread* headingThread;
+	CLHeading* lastRegisteredHeading;
 }
 
 @property (readonly, nonatomic) CLLocation* location;
+@property (readonly, nonatomic) CLHeading* heading;
 
 @end

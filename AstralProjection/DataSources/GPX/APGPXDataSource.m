@@ -11,6 +11,7 @@
 
 #import "APGPXParser.h"
 #import "APLocationDataDelegate.h"
+#import "APLocation.h"
 
 
 static const CLLocationAccuracy kAPGPXDefaultHorizontalAccuracy = 10.0;
@@ -35,6 +36,8 @@ typedef enum
 - (void)getStartDate:(NSDate**)aStartDate andStopDate:(NSDate**)aStopDate;
 - (BOOL)timestamp:(NSDate*)aDate fallsInSegmentFromPoint:(NSDictionary**)aFromPoint
 		  toPoint:(NSDictionary**)aToPoint inPointSet:(NSArray*)aPoints;
+- (APLocation*)locationForDate:(NSDate*)aDate withInterpolation:(APGPXInterpolationMethod)aMethod;
+- (APLocation*)locationWithPointAtIndex:(NSUInteger)aIndex;
 - (void)eventGeneratorLoop;
 
 @end
@@ -45,7 +48,7 @@ typedef enum
 
 @synthesize timeScale;
 @synthesize eventFrequency;
-@synthesize delegate;
+@synthesize locationDataDelegate;
 
 
 // -----------------------------------------------------------------------------
@@ -216,7 +219,7 @@ typedef enum
 // -----------------------------------------------------------------------------
 // APGPXDataSource::locationForDate:withInterpolation:
 // -----------------------------------------------------------------------------
-- (CLLocation*)locationForDate:(NSDate*)aDate withInterpolation:(APGPXInterpolationMethod)aMethod
+- (APLocation*)locationForDate:(NSDate*)aDate withInterpolation:(APGPXInterpolationMethod)aMethod
 {
 	NSDictionary* fromPoint = nil;
 	NSDictionary* toPoint = nil;
@@ -308,7 +311,7 @@ typedef enum
 		}
 	}
 	
-	CLLocation* location = [[CLLocation alloc] initWithCoordinate:CLLocationCoordinate2DMake(latitude,longitude)
+	APLocation* location = [[APLocation alloc] initWithCoordinate:CLLocationCoordinate2DMake(latitude,longitude)
 														 altitude:altitude
 											   horizontalAccuracy:kAPGPXDefaultHorizontalAccuracy
 												 verticalAccuracy:vAccuracy
@@ -320,7 +323,7 @@ typedef enum
 // -----------------------------------------------------------------------------
 // APGPXDataSource::locationWithPointAtIndex:
 // -----------------------------------------------------------------------------
-- (CLLocation*)locationWithPointAtIndex:(NSUInteger)aIndex
+- (APLocation*)locationWithPointAtIndex:(NSUInteger)aIndex
 {
 	NSDictionary* point = nil;
 	
@@ -375,7 +378,7 @@ typedef enum
 		vAccuracy = kAPGPXDefaultVerticalAccuracy;
 	}
 	
-	CLLocation* location = [[CLLocation alloc] initWithCoordinate:CLLocationCoordinate2DMake(latitude,longitude)
+	APLocation* location = [[APLocation alloc] initWithCoordinate:CLLocationCoordinate2DMake(latitude,longitude)
 														 altitude:altitude
 											   horizontalAccuracy:kAPGPXDefaultHorizontalAccuracy
 												 verticalAccuracy:vAccuracy
@@ -399,8 +402,8 @@ typedef enum
 	NSDate* virtualStop = nil;
 	[self getStartDate:&virtualStart andStopDate:&virtualStop];
 
-	CLLocation* oldLocation = nil;
-	CLLocation* newLocation = nil;
+	APLocation* oldLocation = nil;
+	APLocation* newLocation = nil;
 	BOOL endPointPassed = NO;
 	NSUInteger pointIndex = 0;
 	double safeTimeScale = timeScale? timeScale: 1.0;
@@ -429,9 +432,10 @@ typedef enum
 				if ( endPointPassed )
 				{
 					// safety iteration is done, exit the loop
-					[delegate didFailToUpdateLocationWithError:[NSError errorWithDomain:kCLErrorDomain
-																				   code:kCLErrorLocationUnknown
-																			   userInfo:nil]];
+					[locationDataDelegate didFailToUpdateLocationWithError:
+					 [NSError errorWithDomain:kCLErrorDomain
+										 code:kCLErrorLocationUnknown
+									 userInfo:nil]];
 					
 					[threadLock lock];
 					[threadLock unlockWithCondition:kThreadStopping];
@@ -448,7 +452,7 @@ typedef enum
 			NSLog(@"%@",newLocation);
 			
 			// notify the location manager
-			[delegate didUpdateToLocation:newLocation fromLocation:oldLocation];
+			[locationDataDelegate didUpdateToLocation:newLocation fromLocation:oldLocation];
 
 			// sleep until next firing time
 			if ( ![threadLock lockWhenCondition:kThreadStopping
@@ -466,9 +470,10 @@ typedef enum
 			NSLog(@"%@",newLocation);
 			if ( !newLocation )
 			{
-				[delegate didFailToUpdateLocationWithError:[NSError errorWithDomain:kCLErrorDomain
-																			   code:kCLErrorLocationUnknown
-																		   userInfo:nil]];
+				[locationDataDelegate didFailToUpdateLocationWithError:
+				 [NSError errorWithDomain:kCLErrorDomain
+									 code:kCLErrorLocationUnknown
+								 userInfo:nil]];
 				
 				[threadLock lock];
 				[threadLock unlockWithCondition:kThreadStopping];
@@ -497,7 +502,7 @@ typedef enum
 			{
 				[threadLock unlock];
 				
-				[delegate didUpdateToLocation:newLocation fromLocation:oldLocation];
+				[locationDataDelegate didUpdateToLocation:newLocation fromLocation:oldLocation];
 				
 				[threadLock lock];
 			}
@@ -521,9 +526,9 @@ typedef enum
 
 
 // -----------------------------------------------------------------------------
-// APGPXDataSource::start
+// APGPXDataSource::startGeneratingLocationEvents
 // -----------------------------------------------------------------------------
-- (void)start
+- (void)startGeneratingLocationEvents
 {
 	[threadLock lock];
 	if ( [threadLock condition] == kThreadStopped )
@@ -542,9 +547,9 @@ typedef enum
 
 
 // -----------------------------------------------------------------------------
-// APGPXDataSource::stop
+// APGPXDataSource::stopGeneratingLocationEvents
 // -----------------------------------------------------------------------------
-- (void)stop
+- (void)stopGeneratingLocationEvents
 {
 	[threadLock lock];
 	if ( [threadLock condition] == kThreadExecuting )
