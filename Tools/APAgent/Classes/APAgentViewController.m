@@ -10,6 +10,7 @@
 #import "JSON.h"
 #import "APLocationManager.h"
 #import "APGPXDataSource.h"
+#import "APHeadingDataSource.h"
 
 
 #if defined(TARGET_IPHONE_SIMULATOR)
@@ -21,6 +22,8 @@
 
 
 static NSString* const kDateFormat = @"yyyy-MM-dd'T'HH:mm:ss'Z'";
+static NSString* const kLastIPKey = @"LastIP";
+static NSString* const kLastPortKey = @"LastPort";
 
 
 
@@ -51,10 +54,9 @@ static NSString* const kDateFormat = @"yyyy-MM-dd'T'HH:mm:ss'Z'";
 		locationManager.delegate = self;
 		
 		udpConnection = [[APUDPConnection alloc] init];
-		[udpConnection setAddress:@"127.0.0.1"];
-		[udpConnection setPort:0x6a7e];
 		
-		isMonitoring = NO;
+		isMonitoringLocation = NO;
+		isMonitoringHeading = NO;
 		isSending = NO;
 	}
 	
@@ -67,12 +69,40 @@ static NSString* const kDateFormat = @"yyyy-MM-dd'T'HH:mm:ss'Z'";
 	[locationDataSource stopGeneratingLocationEvents];
 	[locationDataSource release];
 	
+	[headingDataSource stopGeneratingHeadingEvents];
+	[headingDataSource release];
+	
 	[locationManager stopUpdatingLocation];
 	[locationManager release];
 
 	[udpConnection release];
 	[lastMessage release];
     [super dealloc];
+}
+
+
+- (void)viewDidLoad
+{
+	NSUserDefaults* prefs = [NSUserDefaults standardUserDefaults];
+	if ( [prefs objectForKey:kLastIPKey] )
+	{
+		ipAddress.text = [prefs objectForKey:kLastIPKey];
+		[udpConnection setAddress:[prefs objectForKey:kLastIPKey]];
+	}
+	else
+	{
+		[udpConnection setAddress:@"127.0.0.1"];
+	}
+	
+	if ( [prefs objectForKey:kLastPortKey] )
+	{
+		port.text = [[prefs objectForKey:kLastPortKey] stringValue];
+		[udpConnection setPort:[[prefs objectForKey:kLastPortKey] intValue]];
+	}
+	else
+	{
+		[udpConnection setPort:0x6a7e];
+	}
 }
 
 
@@ -91,21 +121,36 @@ static NSString* const kDateFormat = @"yyyy-MM-dd'T'HH:mm:ss'Z'";
 }
 
 
+- (IBAction)toggleHeadingMonitoring
+{
+	if ( toggleHeading.on )
+	{
+		[locationManager startUpdatingHeading];
+		[headingDataSource startGeneratingHeadingEvents];
+		isMonitoringHeading = YES;
+	}
+	else
+	{
+		[headingDataSource stopGeneratingHeadingEvents];
+		[locationManager stopUpdatingHeading];
+		isMonitoringHeading = NO;
+	}
+}
+
+
 - (IBAction)toggleLocationMonitoring
 {
-	if ( !isMonitoring )
+	if ( toggleLocation.on )
 	{
 		[locationManager startUpdatingLocation];
 		[locationDataSource startGeneratingLocationEvents];
-		[toggleMonitoring setTitle:@"Stop monitoring" forState:UIControlStateNormal];
-		isMonitoring = YES;
+		isMonitoringLocation = YES;
 	}
 	else
 	{
 		[locationDataSource stopGeneratingLocationEvents];
 		[locationManager stopUpdatingLocation];
-		[toggleMonitoring setTitle:@"Start monitoring" forState:UIControlStateNormal];
-		isMonitoring = NO;
+		isMonitoringLocation = NO;
 	}
 }
 
@@ -125,6 +170,8 @@ static NSString* const kDateFormat = @"yyyy-MM-dd'T'HH:mm:ss'Z'";
 
 - (void)textFieldDidEndEditing:(UITextField*)aTextField
 {
+	NSUserDefaults* prefs = [NSUserDefaults standardUserDefaults];
+	
 	if ( aTextField == port )
 	{
 		NSScanner* scanner = [NSScanner scannerWithString:port.text];
@@ -132,16 +179,22 @@ static NSString* const kDateFormat = @"yyyy-MM-dd'T'HH:mm:ss'Z'";
 		[scanner scanInt:&value];
 		
 		[udpConnection setPort:value&0xffff];
+		[prefs setObject:[NSNumber numberWithInt:value&0xffff] forKey:kLastPortKey];
 	}
 	else if ( aTextField == ipAddress )
 	{
 		[udpConnection setAddress:ipAddress.text];
+		[prefs setObject:ipAddress.text forKey:kLastIPKey];
 	}
+
+	[prefs synchronize];
 }
 
 
 - (BOOL)textFieldShouldReturn:(UITextField*)aTextField
 {
+	NSUserDefaults* prefs = [NSUserDefaults standardUserDefaults];
+
 	if ( aTextField == port )
 	{
 		NSScanner* scanner = [NSScanner scannerWithString:port.text];
@@ -149,12 +202,15 @@ static NSString* const kDateFormat = @"yyyy-MM-dd'T'HH:mm:ss'Z'";
 		[scanner scanInt:&value];
 		
 		[udpConnection setPort:value&0xffff];
+		[prefs setObject:[NSNumber numberWithInt:value&0xffff] forKey:kLastPortKey];
 	}
 	else if ( aTextField == ipAddress )
 	{
 		[udpConnection setAddress:ipAddress.text];
+		[prefs setObject:ipAddress.text forKey:kLastIPKey];
 	}
 	
+	[prefs synchronize];
 	
 	[aTextField resignFirstResponder];
 	
@@ -202,7 +258,7 @@ static NSString* const kDateFormat = @"yyyy-MM-dd'T'HH:mm:ss'Z'";
 		[dateFmt release];
 		
 		NSDictionary* message = [NSDictionary dictionaryWithObjectsAndKeys:
-								 @"update", @"type",
+								 @"update.location", @"type",
 								 [NSDictionary dictionaryWithObjectsAndKeys:
 								  oldDic, @"old",
 								  newDic, @"new",
@@ -213,7 +269,7 @@ static NSString* const kDateFormat = @"yyyy-MM-dd'T'HH:mm:ss'Z'";
 		lastMessage = [message retain];
 		
 		[udpConnection sendData:[[message JSONRepresentation] dataUsingEncoding:NSUTF8StringEncoding]];
-		NSLog(@"update sent");
+		NSLog(@"location update sent");
 	}
 }
 
@@ -235,5 +291,33 @@ static NSString* const kDateFormat = @"yyyy-MM-dd'T'HH:mm:ss'Z'";
 		[udpConnection sendData:[[packet JSONRepresentation] dataUsingEncoding:NSUTF8StringEncoding]];
 	}
 }
+
+
+- (void)locationManager:(CLLocationManager*)aManager
+	   didUpdateHeading:(CLHeading*)aHeading
+{
+	if ( isSending )
+	{
+		NSDateFormatter* dateFmt = [[NSDateFormatter alloc] init];
+		[dateFmt setDateFormat:kDateFormat];
+		
+		NSDictionary* packet = [NSDictionary dictionaryWithObjectsAndKeys:
+								@"update.heading", @"type",
+								[NSDictionary dictionaryWithObjectsAndKeys:
+								 [NSNumber numberWithDouble:aHeading.magneticHeading], @"mag",
+								 [NSNumber numberWithDouble:aHeading.trueHeading], @"true",
+								 [NSNumber numberWithDouble:aHeading.headingAccuracy], @"acc",
+								 [dateFmt stringFromDate:aHeading.timestamp], @"time",
+								 [NSNumber numberWithDouble:aHeading.x], @"x",
+								 [NSNumber numberWithDouble:aHeading.y], @"y",
+								 [NSNumber numberWithDouble:aHeading.z], @"z",
+								 nil], @"data",
+								nil];
+		
+		[udpConnection sendData:[[packet JSONRepresentation] dataUsingEncoding:NSUTF8StringEncoding]];
+		NSLog(@"heading update sent");
+	}
+}
+
 
 @end

@@ -11,15 +11,18 @@
 
 @class APUDPConnection;
 @protocol APLocationDataSource;
+@protocol APHeadingDataSource;
 
 
 @interface APAgentViewController : UIViewController <CLLocationManagerDelegate, UITextFieldDelegate>
 {
 	CLLocationManager* locationManager;
 	id<APLocationDataSource> locationDataSource;
+	id<APHeadingDataSource> headingDataSource;
 	APUDPConnection* udpConnection;
 	
-	BOOL isMonitoring;
+	BOOL isMonitoringLocation;
+	BOOL isMonitoringHeading;
 	BOOL isSending;
 	
 	NSDictionary* lastMessage;
@@ -30,11 +33,14 @@
 	
 	IBOutlet UILabel* latitude;
 	IBOutlet UILabel* longitude;
-	IBOutlet UIButton* toggleMonitoring;
+	IBOutlet UILabel* magHeading;
+	IBOutlet UISwitch* toggleLocation;
+	IBOutlet UISwitch* toggleHeading;
 }
 
 - (IBAction)toggleSending;
 - (IBAction)toggleLocationMonitoring;
+- (IBAction)toggleHeadingMonitoring;
 - (IBAction)triggerSending;
 
 @end
