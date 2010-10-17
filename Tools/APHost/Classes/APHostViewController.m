@@ -7,7 +7,12 @@
 
 #import "APHostViewController.h"
 #import "APGPXDataSource.h"
+#import "APAgentDataSource.h"
 #import "APLocationManager.h"
+
+
+// enable agent here
+#define AGENT_DATASOURCE
 
 
 @implementation APHostViewController
@@ -18,15 +23,20 @@
 	if ( (self = [super initWithCoder:aDecoder]) )
 	{
 		locationManager = [[APLocationManager alloc] init];
-		
-		gpxDataSource = [[APGPXDataSource alloc] initWithURL:[NSURL fileURLWithPath:[[NSBundle mainBundle] pathForResource:@"ashland" ofType:@"gpx"]]];
-		if ( [gpxDataSource cardinalityForDataSet:kAPGPXDataSetTrack] > 7 )
+
+#if defined(AGENT_DATASOURCE)
+		APAgentDataSource* agent = [[APAgentDataSource alloc] init];
+		locationDataSource = agent;
+#else
+		APGPXDataSource* gpx = [[APGPXDataSource alloc] initWithURL:[NSURL fileURLWithPath:[[NSBundle mainBundle] pathForResource:@"ashland" ofType:@"gpx"]]];
+		if ( [gpx cardinalityForDataSet:kAPGPXDataSetTrack] > 7 )
 		{
-			[gpxDataSource setActiveDataSet:kAPGPXDataSetTrack subsetIndex:7];
+			[gpx setActiveDataSet:kAPGPXDataSetTrack subsetIndex:7];
 		}
-		
-		gpxDataSource.locationDataDelegate = (APLocationManager*)locationManager;
-		gpxDataSource.timeScale = 30.0;
+
+		locationDataSource = gpx;
+#endif
+		locationDataSource.locationDataDelegate = (APLocationManager*)locationManager;
 		
 		// you need to skip this check on the simulator
 #ifndef TARGET_IPHONE_SIMULATOR
@@ -44,8 +54,8 @@
 
 - (void)dealloc
 {
-	[gpxDataSource stopGeneratingLocationEvents];
-	[gpxDataSource release];
+	[locationDataSource stopGeneratingLocationEvents];
+	[locationDataSource release];
 	
 	[locationManager stopUpdatingLocation];
 	[locationManager release];
@@ -60,12 +70,12 @@
 	{
 		[toggleUpdatesButton setTitle:@"Stop" forState:UIControlStateNormal];
 		[locationManager startUpdatingLocation];
-		[gpxDataSource startGeneratingLocationEvents];
+		[locationDataSource startGeneratingLocationEvents];
 	}
 	else
 	{
 		[toggleUpdatesButton setTitle:@"Start" forState:UIControlStateNormal];
-		[gpxDataSource stopGeneratingLocationEvents];
+		[locationDataSource stopGeneratingLocationEvents];
 		[locationManager stopUpdatingLocation];
 	}
 	

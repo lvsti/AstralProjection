@@ -8,7 +8,7 @@
 #import <UIKit/UIKit.h>
 #import <CoreLocation/CoreLocation.h>
 
-@class APGPXDataSource;
+@protocol APLocationDataSource;
 
 
 @interface APHostViewController : UIViewController <CLLocationManagerDelegate>
@@ -20,7 +20,7 @@
 	IBOutlet UILabel* longitude;
 	IBOutlet UIButton* toggleUpdatesButton;
 	
-	APGPXDataSource* gpxDataSource;
+	id<APLocationDataSource> locationDataSource;
 }
 
 - (IBAction)toggleLocationUpdates;
