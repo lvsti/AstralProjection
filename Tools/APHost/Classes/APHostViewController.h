@@ -18,6 +18,7 @@
 	
 	IBOutlet UILabel* latitude;
 	IBOutlet UILabel* longitude;
+	IBOutlet UILabel* heading;
 	IBOutlet UIButton* toggleUpdatesButton;
 	
 	id<APLocationDataSource> locationDataSource;

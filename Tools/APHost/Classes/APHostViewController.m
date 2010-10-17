@@ -100,4 +100,11 @@
 {
 }
 
+
+- (void)locationManager:(CLLocationManager *)manager
+	   didUpdateHeading:(CLHeading *)newHeading
+{
+	heading.text = [NSString stringWithFormat:@"%3.2f",newHeading.magneticHeading];
+}
+
 @end
