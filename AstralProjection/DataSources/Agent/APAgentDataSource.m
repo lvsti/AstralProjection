@@ -104,6 +104,10 @@ static const NSInteger kThreadStopped = 2;
 }
 
 
+#pragma mark -
+#pragma mark from APLocationDataSource:
+
+
 // -----------------------------------------------------------------------------
 // APAgentDataSource::startGeneratingLocationEvents
 // -----------------------------------------------------------------------------
@@ -140,6 +144,10 @@ static const NSInteger kThreadStopped = 2;
 		[threadLock unlock];
 	}
 }
+
+
+#pragma mark -
+#pragma mark new methods:
 
 
 // -----------------------------------------------------------------------------

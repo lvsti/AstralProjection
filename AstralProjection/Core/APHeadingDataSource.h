@@ -11,7 +11,7 @@
 @protocol APHeadingDataDelegate;
 
 
-@protocol APHeadingDataSource
+@protocol APHeadingDataSource <NSObject>
 
 @property (nonatomic, assign) id<APHeadingDataDelegate> headingDelegate;
 

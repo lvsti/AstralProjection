@@ -11,7 +11,7 @@
 @protocol APLocationDataDelegate;
 
 
-@protocol APLocationDataSource
+@protocol APLocationDataSource <NSObject>
 
 @property (nonatomic, assign) id<APLocationDataDelegate> locationDataDelegate;
 
