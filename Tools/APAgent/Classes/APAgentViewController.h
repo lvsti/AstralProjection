@@ -10,11 +10,13 @@
 
 
 @class APUDPConnection;
+@protocol APLocationDataSource;
 
 
 @interface APAgentViewController : UIViewController <CLLocationManagerDelegate, UITextFieldDelegate>
 {
 	CLLocationManager* locationManager;
+	id<APLocationDataSource> locationDataSource;
 	APUDPConnection* udpConnection;
 	
 	BOOL isMonitoring;

@@ -8,6 +8,17 @@
 #import "APAgentViewController.h"
 #import "APUDPConnection.h"
 #import "JSON.h"
+#import "APLocationManager.h"
+#import "APGPXDataSource.h"
+
+
+#if defined(TARGET_IPHONE_SIMULATOR)
+#undef LOCATION_HARDWARE_PRESENT
+#else
+// enable the GPS hardware here
+//#define LOCATION_HARDWARE_PRESENT
+#endif
+
 
 static NSString* const kDateFormat = @"yyyy-MM-dd'T'HH:mm:ss'Z'";
 
@@ -20,7 +31,23 @@ static NSString* const kDateFormat = @"yyyy-MM-dd'T'HH:mm:ss'Z'";
 {
 	if ( (self = [super initWithCoder:aDecoder]) )
 	{
+#if defined(LOCATION_HARDWARE_PRESENT)
 		locationManager = [[CLLocationManager alloc] init];
+#else
+		locationManager = [[APLocationManager alloc] init];
+		
+		APGPXDataSource* gpx = [[APGPXDataSource alloc] initWithURL:[NSURL fileURLWithPath:[[NSBundle mainBundle] pathForResource:@"ashland" ofType:@"gpx"]]];
+		if ( [gpx cardinalityForDataSet:kAPGPXDataSetTrack] > 7 )
+		{
+			[gpx setActiveDataSet:kAPGPXDataSetTrack subsetIndex:7];
+		}
+
+		gpx.timeScale = 30.0;
+		
+		locationDataSource = gpx;
+		locationDataSource.locationDataDelegate = (APLocationManager*)locationManager;
+#endif
+
 		locationManager.delegate = self;
 		
 		udpConnection = [[APUDPConnection alloc] init];
@@ -37,8 +64,13 @@ static NSString* const kDateFormat = @"yyyy-MM-dd'T'HH:mm:ss'Z'";
 
 - (void)dealloc
 {
-	[udpConnection release];
+	[locationDataSource stopGeneratingLocationEvents];
+	[locationDataSource release];
+	
+	[locationManager stopUpdatingLocation];
 	[locationManager release];
+
+	[udpConnection release];
 	[lastMessage release];
     [super dealloc];
 }
@@ -64,11 +96,13 @@ static NSString* const kDateFormat = @"yyyy-MM-dd'T'HH:mm:ss'Z'";
 	if ( !isMonitoring )
 	{
 		[locationManager startUpdatingLocation];
+		[locationDataSource startGeneratingLocationEvents];
 		[toggleMonitoring setTitle:@"Stop monitoring" forState:UIControlStateNormal];
 		isMonitoring = YES;
 	}
 	else
 	{
+		[locationDataSource stopGeneratingLocationEvents];
 		[locationManager stopUpdatingLocation];
 		[toggleMonitoring setTitle:@"Start monitoring" forState:UIControlStateNormal];
 		isMonitoring = NO;
