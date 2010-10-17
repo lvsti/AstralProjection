@@ -30,7 +30,10 @@
 // -----------------------------------------------------------------------------
 - (void)startUpdatingLocation
 {
-	locationThread = [NSThread currentThread];
+	if ( !locationThread )
+	{
+		locationThread = [NSThread currentThread];
+	}
 }
 
 
@@ -48,7 +51,10 @@
 // -----------------------------------------------------------------------------
 - (void)startUpdatingHeading
 {
-	headingThread = [NSThread currentThread];
+	if ( !headingThread )
+	{
+		headingThread = [NSThread currentThread];
+	}
 }
 
 
@@ -94,7 +100,6 @@
 							   withObject:[NSArray arrayWithObjects:aNewLocation,aOldLocation,nil]
 							waitUntilDone:YES];
 				}
-
 			}
 		}
 	}

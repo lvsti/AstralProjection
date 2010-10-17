@@ -15,6 +15,8 @@
 #import "JSON.h"
 #import "APLocationDataDelegate.h"
 #import "APLocation.h"
+#import "APHeadingDataDelegate.h"
+#import "APHeading.h"
 
 
 static NSString* const kDateFormat = @"yyyy-MM-dd'T'HH:mm:ss'Z'";
@@ -33,6 +35,7 @@ static const NSInteger kThreadStopped = 2;
 - (void)receiverThread;
 - (void)processLocationUpdateMessage:(NSDictionary*)aMessage;
 - (void)processLocationErrorMessage:(NSDictionary*)aMessage;
+- (void)processHeadingUpdateMessage:(NSDictionary*)aMessage;
 @end
 
 
@@ -40,6 +43,7 @@ static const NSInteger kThreadStopped = 2;
 @implementation APAgentDataSource
 
 @synthesize locationDataDelegate;
+@synthesize headingDataDelegate;
 
 
 // -----------------------------------------------------------------------------
@@ -68,7 +72,10 @@ static const NSInteger kThreadStopped = 2;
 		if ( bind(scoutSocket, (const struct sockaddr*)&address, slen) < 0 )
 		{
 			NSLog(@"ERROR: bind");
-		}		
+		}
+		
+		dateFmt = [[NSDateFormatter alloc] init];
+		[dateFmt setDateFormat:kDateFormat];
 	}
 	
 	return self;
@@ -99,6 +106,7 @@ static const NSInteger kThreadStopped = 2;
 	close(scoutSocket);
 	
 	[threadLock release];
+	[dateFmt release];
 	
 	[super dealloc];
 }
@@ -125,7 +133,9 @@ static const NSInteger kThreadStopped = 2;
 	else
 	{
 		[threadLock unlock];
-	}	
+	}
+
+	isLocationActive = YES;
 }
 
 
@@ -135,7 +145,7 @@ static const NSInteger kThreadStopped = 2;
 - (void)stopGeneratingLocationEvents
 {
 	[threadLock lock];
-	if ( [threadLock condition] == kThreadExecuting )
+	if ( [threadLock condition] == kThreadExecuting && !isHeadingActive )
 	{
 		[threadLock unlockWithCondition:kThreadStopping];
 	}
@@ -143,6 +153,54 @@ static const NSInteger kThreadStopped = 2;
 	{
 		[threadLock unlock];
 	}
+
+	isLocationActive = NO;
+}
+
+
+#pragma mark -
+#pragma mark from APHeadingDataSource:
+
+
+// -----------------------------------------------------------------------------
+// APAgentDataSource::startGeneratingHeadingEvents
+// -----------------------------------------------------------------------------
+- (void)startGeneratingHeadingEvents
+{
+	[threadLock lock];
+	if ( [threadLock condition] == kThreadStopped )
+	{
+		[NSThread detachNewThreadSelector:@selector(receiverThread)
+								 toTarget:self
+							   withObject:nil];
+		
+		[threadLock unlockWithCondition:kThreadExecuting];
+	}
+	else
+	{
+		[threadLock unlock];
+	}
+
+	isHeadingActive = YES;
+}
+
+
+// -----------------------------------------------------------------------------
+// APAgentDataSource::stopGeneratingHeadingEvents
+// -----------------------------------------------------------------------------
+- (void)stopGeneratingHeadingEvents
+{
+	[threadLock lock];
+	if ( [threadLock condition] == kThreadExecuting && !isLocationActive )
+	{
+		[threadLock unlockWithCondition:kThreadStopping];
+	}
+	else
+	{
+		[threadLock unlock];
+	}
+	
+	isHeadingActive = NO;
 }
 
 
@@ -205,13 +263,22 @@ static const NSInteger kThreadStopped = 2;
 				
 				NSLog(@"%@",message);
 				
-				if ( [[message objectForKey:@"type"] isEqualToString:@"update"] )
+				if ( isLocationActive && locationDataDelegate )
 				{
-					[self processLocationUpdateMessage:[message objectForKey:@"data"]];
+					if ( [[message objectForKey:@"type"] isEqualToString:@"update.location"] )
+					{
+						[self processLocationUpdateMessage:[message objectForKey:@"data"]];
+					}
+					else if ( [[message objectForKey:@"type"] isEqualToString:@"error"] )
+					{
+						[self processLocationErrorMessage:[message objectForKey:@"data"]];
+					}
 				}
-				else if ( [[message objectForKey:@"type"] isEqualToString:@"error"] )
+
+				if ( isHeadingActive && headingDataDelegate && 
+					 [[message objectForKey:@"type"] isEqualToString:@"update.heading"] )
 				{
-					[self processLocationErrorMessage:[message objectForKey:@"data"]];
+					[self processHeadingUpdateMessage:[message objectForKey:@"data"]];
 				}
 			}
 
@@ -238,8 +305,6 @@ static const NSInteger kThreadStopped = 2;
 - (void)processLocationUpdateMessage:(NSDictionary*)aMessage
 {
 	CLLocationCoordinate2D coord;
-	NSDateFormatter* dateFmt = [[NSDateFormatter alloc] init];
-	[dateFmt setDateFormat:kDateFormat];
 	
 	NSDictionary* oldLoc = [aMessage objectForKey:@"old"];
 	coord = CLLocationCoordinate2DMake([[oldLoc objectForKey:@"lat"] doubleValue],
@@ -267,7 +332,8 @@ static const NSInteger kThreadStopped = 2;
 	
 	[locationDataDelegate didUpdateToLocation:newLocation fromLocation:oldLocation];	
 	
-	[dateFmt release];
+	[oldLocation release];
+	[newLocation release];
 }
 
 
@@ -282,6 +348,29 @@ static const NSInteger kThreadStopped = 2;
 	
 	[locationDataDelegate didFailToUpdateLocationWithError:error];
 }
+
+
+// -----------------------------------------------------------------------------
+// APAgentDataSource::processHeadingUpdateMessage:
+// -----------------------------------------------------------------------------
+- (void)processHeadingUpdateMessage:(NSDictionary*)aMessage
+{
+	APHeading* heading = [[APHeading alloc] init];
+	
+	heading.magneticHeading = [[aMessage objectForKey:@"mag"] doubleValue];
+	heading.trueHeading = [[aMessage objectForKey:@"true"] doubleValue];
+	heading.headingAccuracy = [[aMessage objectForKey:@"acc"] doubleValue];
+	heading.timestamp = [dateFmt dateFromString:[aMessage objectForKey:@"time"]];
+	heading.x = [[aMessage objectForKey:@"x"] doubleValue];
+	heading.y = [[aMessage objectForKey:@"y"] doubleValue];
+	heading.z = [[aMessage objectForKey:@"z"] doubleValue];
+	
+	[headingDataDelegate didUpdateToHeading:heading];
+	
+	[heading release];
+}
+
+
 
 
 @end
