@@ -316,12 +316,6 @@ typedef enum
 		}
 	}
 	
-	APLocation* location = [[APLocation alloc] initWithCoordinate:CLLocationCoordinate2DMake(latitude,longitude)
-														 altitude:altitude
-											   horizontalAccuracy:kAPGPXDefaultHorizontalAccuracy
-												 verticalAccuracy:vAccuracy
-														timestamp:aDate];
-
 	if ( toPoint != fromPoint )
 	{
 		APLocation* fromLocation = [[APLocation alloc] initWithLatitude:[[fromPoint objectForKey:kGPXPointLatitude] doubleValue]
@@ -356,9 +350,14 @@ typedef enum
 		[fromLocation release];
 	}
 
-	location.speed = speed;
-	location.course = course;
-
+	APLocation* location = [[APLocation alloc] initWithCoordinate:CLLocationCoordinate2DMake(latitude,longitude)
+														 altitude:altitude
+											   horizontalAccuracy:kAPGPXDefaultHorizontalAccuracy
+												 verticalAccuracy:vAccuracy
+														   course:course
+															speed:speed
+														timestamp:aDate];
+	
 	return [location autorelease];
 }
 
@@ -447,11 +446,11 @@ typedef enum
 		vAccuracy = kAPGPXDefaultVerticalAccuracy;
 	}
 	
-	APLocation* location = [[APLocation alloc] initWithCoordinate:CLLocationCoordinate2DMake(latitude,longitude)
-														 altitude:altitude
-											   horizontalAccuracy:kAPGPXDefaultHorizontalAccuracy
-												 verticalAccuracy:vAccuracy
-														timestamp:[point objectForKey:kGPXPointTime]];
+	APLocation* tempLocation = [[APLocation alloc] initWithCoordinate:CLLocationCoordinate2DMake(latitude,longitude)
+															 altitude:altitude
+												   horizontalAccuracy:kAPGPXDefaultHorizontalAccuracy
+													 verticalAccuracy:vAccuracy
+															timestamp:[point objectForKey:kGPXPointTime]];
 	
 	if ( toPoint )
 	{
@@ -463,7 +462,7 @@ typedef enum
 		
 		if ( timeDelta > 0.0 )
 		{
-			speed = [toLocation distanceFromLocation:location] / timeDelta;
+			speed = [toLocation distanceFromLocation:tempLocation] / timeDelta;
 		}
 		
 		// calculate course
@@ -471,8 +470,8 @@ typedef enum
 		//       Expect it to fail close to the poles and when crossing -180 W / 180 E. You have been warned.
 		
 		// alpha is zero towards east and grows counterclockwise, radians
-		double alpha = atan2(toLocation.coordinate.latitude - location.coordinate.latitude,
-							 toLocation.coordinate.longitude - location.coordinate.longitude);
+		double alpha = atan2(toLocation.coordinate.latitude - tempLocation.coordinate.latitude,
+							 toLocation.coordinate.longitude - tempLocation.coordinate.longitude);
 		
 		// course is zero towards the north and grows clockwise, degrees
 		course = -(alpha*180.0/M_PI - 90.0);
@@ -484,8 +483,13 @@ typedef enum
 		[toLocation release];
 	}
 	
-	location.speed = speed;
-	location.course = course;
+	APLocation* location = [[APLocation alloc] initWithCoordinate:tempLocation.coordinate
+														 altitude:tempLocation.altitude
+											   horizontalAccuracy:tempLocation.horizontalAccuracy
+												 verticalAccuracy:tempLocation.verticalAccuracy
+														   course:course
+															speed:speed
+														timestamp:tempLocation.timestamp];
 	
 	return [location autorelease];
 }

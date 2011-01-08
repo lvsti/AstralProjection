@@ -11,11 +11,6 @@
 
 @interface APLocation : CLLocation
 {
-	CLLocationSpeed apSpeed;
-	CLLocationDirection apCourse;
 }
-
-@property(NS_NONATOMIC_IPHONEONLY, assign) CLLocationSpeed speed;
-@property(NS_NONATOMIC_IPHONEONLY, assign) CLLocationDirection course;
 
 @end

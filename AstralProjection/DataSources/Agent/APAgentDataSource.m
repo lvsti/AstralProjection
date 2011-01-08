@@ -315,9 +315,9 @@ static const NSInteger kThreadStopped = 2;
 															altitude:[[oldLoc objectForKey:@"alt"] doubleValue]
 												  horizontalAccuracy:[[oldLoc objectForKey:@"hacc"] doubleValue]
 													verticalAccuracy:[[oldLoc objectForKey:@"vacc"] doubleValue]
+															  course:[[oldLoc objectForKey:@"crs"] doubleValue]
+															   speed:[[oldLoc objectForKey:@"spd"] doubleValue]
 														   timestamp:[dateFmt dateFromString:[oldLoc objectForKey:@"time"]]];
-	oldLocation.speed = [[oldLoc objectForKey:@"spd"] doubleValue];
-	oldLocation.course = [[oldLoc objectForKey:@"crs"] doubleValue];
 	
 	NSDictionary* newLoc = [aMessage objectForKey:@"new"];
 	coord = CLLocationCoordinate2DMake([[newLoc objectForKey:@"lat"] doubleValue],
@@ -326,9 +326,9 @@ static const NSInteger kThreadStopped = 2;
 															altitude:[[newLoc objectForKey:@"alt"] doubleValue]
 												  horizontalAccuracy:[[newLoc objectForKey:@"hacc"] doubleValue]
 													verticalAccuracy:[[newLoc objectForKey:@"vacc"] doubleValue]
+															  course:[[newLoc objectForKey:@"crs"] doubleValue]
+															   speed:[[newLoc objectForKey:@"spd"] doubleValue]
 														   timestamp:[dateFmt dateFromString:[newLoc objectForKey:@"time"]]];
-	newLocation.speed = [[newLoc objectForKey:@"spd"] doubleValue];
-	newLocation.course = [[newLoc objectForKey:@"crs"] doubleValue];
 	
 	[locationDataDelegate didUpdateToLocation:newLocation fromLocation:oldLocation];	
 	
