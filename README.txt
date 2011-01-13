@@ -17,7 +17,7 @@ From Wikipedia: "Astral projection (or astral travel) is an interpretation of an
 
 Generally, apps that use location data can only be tested well when deployed on the device. The simulator has limited or no facilities for returning GPS coordinates (particularly, the iPhone simulator returns one hard-coded location), and the hardware builds worth equally little if the wandering "range" is limited to the length of the USB cable (e.g. in case of on-device debugging). But even if you are fine with deploying, how would you test use cases which involve motion and you don't get a damn fix in the whole office? This is when AP enters the scene.
 
-Astral Projection is a set of tools which allow you to generate fake location-related data that normally comes from the underlying hardware such as GPS or wireless triangulation. AP is bundled with a couple of data sources which you can use right away, or, should you require a custom one, you can also add your own modules complying with a simple interface. 
+Astral Projection is a set of tools which allow you to generate fake location-related data that normally comes from the underlying hardware such as GPS, WiFi or 3G. AP is bundled with a couple of data sources which you can use right away, or, should you require a custom one, you can also add your own modules complying with a simple interface. 
 
 
 3. How does it work?
