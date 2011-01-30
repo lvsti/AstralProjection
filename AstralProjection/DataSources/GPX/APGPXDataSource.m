@@ -533,7 +533,7 @@ typedef enum
 		{
 			// events are generated at a given frequency
 			// to get the current location, we must interpolate between the discrete data points
-			NSDate* now = [NSDate date];
+			NSDate* now = [[NSDate date] retain];
 			NSTimeInterval elapsed = [now timeIntervalSinceDate:start];
 			NSTimeInterval virtualElapsed = elapsed * safeTimeScale;
 			NSDate* virtualNow = [NSDate dateWithTimeInterval:virtualElapsed sinceDate:virtualStart];
@@ -553,6 +553,7 @@ typedef enum
 					[threadLock lock];
 					[threadLock unlockWithCondition:kThreadStopping];
 					[threadLock lock];
+					[now release];
 					continue;
 				}
 							
@@ -579,6 +580,7 @@ typedef enum
 				[threadLock lock];
 			}
 			
+			[now release];
 			[scheduleTime release];
 		}
 		else
