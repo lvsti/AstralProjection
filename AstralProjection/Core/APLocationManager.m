@@ -11,6 +11,11 @@
 #import "APHeading.h"
 
 
+#if !TARGET_OS_IPHONE
+const CLLocationDegrees kCLHeadingFilterNone = -1.0;
+#endif
+
+
 @interface APLocationManager ()
 - (void)updateLocationDelegateWithData:(NSArray*)aLocationData;
 - (void)updateLocationDelegateWithError:(NSError*)aError;
@@ -23,6 +28,10 @@
 
 @synthesize location = lastRegisteredLocation;
 @synthesize heading = lastRegisteredHeading;
+
+#if !TARGET_OS_IPHONE
+@synthesize headingFilter;
+#endif
 
 
 // -----------------------------------------------------------------------------
@@ -173,7 +182,9 @@
 			{
 				if ( headingThread == [NSThread currentThread] )
 				{
-					[self.delegate locationManager:self didUpdateHeading:(CLHeading*)aNewHeading];
+					[self.delegate performSelector:@selector(locationManager:didUpdateHeading:)
+										withObject:self
+										withObject:aNewHeading];
 				}
 				else
 				{
@@ -193,7 +204,10 @@
 // -----------------------------------------------------------------------------
 - (void)updateHeadingDelegateWithHeading:(APHeading*)aHeading
 {
-	[self.delegate locationManager:self didUpdateHeading:(CLHeading*)aHeading];
+	[self.delegate performSelector:@selector(locationManager:didUpdateHeading:)
+						withObject:self
+						withObject:aHeading];
 }
+
 
 @end

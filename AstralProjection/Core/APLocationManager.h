@@ -10,6 +10,11 @@
 #import "APLocationDataDelegate.h"
 #import "APHeadingDataDelegate.h"
 
+#if !TARGET_OS_IPHONE
+#import "EXT_CLHeading.h"
+#endif
+
+
 @interface APLocationManager : CLLocationManager <APLocationDataDelegate,
 												  APHeadingDataDelegate>
 {
@@ -20,7 +25,11 @@
 	CLHeading* lastRegisteredHeading;
 }
 
-@property (readonly, nonatomic) CLLocation* location;
-@property (readonly, nonatomic) CLHeading* heading;
+@property (readonly, NS_NONATOMIC_IPHONEONLY) CLLocation* location;
+@property (readonly, NS_NONATOMIC_IPHONEONLY) CLHeading* heading;
+
+#if !TARGET_OS_IPHONE
+@property (assign, NS_NONATOMIC_IPHONEONLY) CLLocationDegrees headingFilter;
+#endif
 
 @end

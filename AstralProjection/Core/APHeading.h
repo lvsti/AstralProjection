@@ -6,7 +6,12 @@
 //
 
 #import <Foundation/Foundation.h>
+
+#if TARGET_OS_IPHONE
 #import <CoreLocation/CLHeading.h>
+#else
+#import "EXT_CLHeading.h"
+#endif
 
 
 @interface APHeading : CLHeading

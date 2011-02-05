@@ -18,6 +18,10 @@
 #import "APHeadingDataDelegate.h"
 #import "APHeading.h"
 
+#if !TARGET_OS_IPHONE
+#import "EXT_CoreLocation.h"
+#endif
+
 
 static NSString* const kDateFormat = @"yyyy-MM-dd'T'HH:mm:ss'Z'";
 

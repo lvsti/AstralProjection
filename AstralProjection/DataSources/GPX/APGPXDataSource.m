@@ -13,6 +13,10 @@
 #import "APLocationDataDelegate.h"
 #import "APLocation.h"
 
+#if !TARGET_OS_IPHONE
+#import "EXT_CoreLocation.h"
+#endif
+
 
 static const CLLocationAccuracy kAPGPXDefaultHorizontalAccuracy = 10.0;
 static const CLLocationAccuracy kAPGPXDefaultVerticalAccuracy = 10.0;
