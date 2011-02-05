@@ -16,8 +16,8 @@
 	CLLocationDirection apCourse;
 }
 
-@property (NS_NONATOMIC_IPHONEONLY) CLLocationSpeed speed;
-@property (NS_NONATOMIC_IPHONEONLY) CLLocationDirection course;
+@property (assign, NS_NONATOMIC_IPHONEONLY) CLLocationSpeed speed;
+@property (assign, NS_NONATOMIC_IPHONEONLY) CLLocationDirection course;
 
 - (id)initWithCoordinate:(CLLocationCoordinate2D)aCoordinate
 				altitude:(CLLocationDistance)aAltitude
