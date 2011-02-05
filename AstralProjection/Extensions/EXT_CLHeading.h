@@ -17,6 +17,16 @@ extern const CLLocationDegrees kCLHeadingFilterNone;
 {
 @private
     id _internal;
+	
+#if !TARGET_OS_IPHONE
+	CLLocationDirection magneticHeading;
+	CLLocationDirection trueHeading;
+	CLLocationDirection headingAccuracy;
+	CLHeadingComponentValue x;
+	CLHeadingComponentValue y;
+	CLHeadingComponentValue z;
+	NSDate* timestamp;
+#endif
 }
 
 @property(readonly, nonatomic) CLLocationDirection magneticHeading;

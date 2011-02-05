@@ -23,6 +23,10 @@
 
 	NSThread* headingThread;
 	CLHeading* lastRegisteredHeading;
+	
+#if !TARGET_OS_IPHONE
+	CLLocationDegrees headingFilter;
+#endif
 }
 
 @property (readonly, NS_NONATOMIC_IPHONEONLY) CLLocation* location;
