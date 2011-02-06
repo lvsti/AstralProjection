@@ -7,6 +7,7 @@
 
 #import "EXT_CoreLocation.h"
 
+#if !TARGET_OS_IPHONE
 
 CLLocationCoordinate2D CLLocationCoordinate2DMake(CLLocationDegrees aLatitude,
 												  CLLocationDegrees aLongitude)
@@ -17,3 +18,4 @@ CLLocationCoordinate2D CLLocationCoordinate2DMake(CLLocationDegrees aLatitude,
 	return coord;
 }
 
+#endif

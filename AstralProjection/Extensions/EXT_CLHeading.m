@@ -9,6 +9,8 @@
 #import "EXT_CLHeading.h"
 
 
+#if !TARGET_OS_IPHONE
+
 static NSString* const kHeadingDescriptionFormat = @"magneticHeading %3.2f trueHeading %3.2f accuracy %3.2f x %3.3f y %3.3f z %3.3f @ %@";
 
 
@@ -60,3 +62,5 @@ static NSString* const kHeadingDescriptionFormat = @"magneticHeading %3.2f trueH
 }
 
 @end
+
+#endif
