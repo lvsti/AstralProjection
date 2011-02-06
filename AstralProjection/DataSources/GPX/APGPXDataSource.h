@@ -28,6 +28,7 @@ typedef enum
 
 	double timeScale;
 	NSTimeInterval eventFrequency;
+	BOOL autorepeat;
 	NSConditionLock* threadLock;
 	
 	id<APLocationDataDelegate> locationDataDelegate;
@@ -36,6 +37,7 @@ typedef enum
 @property (nonatomic, assign) double timeScale;
 @property (nonatomic, assign) NSTimeInterval eventFrequency;
 @property (nonatomic, assign) id<APLocationDataDelegate> locationDataDelegate;
+@property (nonatomic, assign) BOOL autorepeat;
 
 - (id)initWithURL:(NSURL*)aUrl;
 

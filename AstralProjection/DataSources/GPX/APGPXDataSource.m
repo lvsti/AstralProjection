@@ -53,6 +53,7 @@ typedef enum
 @synthesize timeScale;
 @synthesize eventFrequency;
 @synthesize locationDataDelegate;
+@synthesize autorepeat;
 
 
 // -----------------------------------------------------------------------------
@@ -64,6 +65,7 @@ typedef enum
 	{
 		timeScale = 1.0;
 		eventFrequency = 0.0;
+		autorepeat = NO;
 		
 		threadLock = [[NSConditionLock alloc] initWithCondition:kThreadStopped];
 		
@@ -520,10 +522,11 @@ typedef enum
 	NSUInteger pointIndex = 0;
 	double safeTimeScale = timeScale? timeScale: 1.0;
 	NSTimeInterval safeEventFrequency = (eventFrequency >= 0.0)? eventFrequency: 0.0;
+	BOOL safeAutorepeat = autorepeat;
 	
 	NSAutoreleasePool* nestedPool = nil;
 	
-	NSDate* start = [NSDate date];
+	NSDate* start = [[NSDate date] retain];
 	
 	[threadLock lock];
 	while ( [threadLock condition] != kThreadStopping )
@@ -548,26 +551,41 @@ typedef enum
 				// we still allow one more iteration to ensure the endpoint is sent to the delegate
 				if ( endPointPassed )
 				{
-					// safety iteration is done, exit the loop
-					[locationDataDelegate didFailToUpdateLocationWithError:
-					 [NSError errorWithDomain:kCLErrorDomain
-										 code:kCLErrorLocationUnknown
-									 userInfo:nil]];
+					// safety iteration is done
+					if ( !safeAutorepeat )
+					{
+						// exit the loop
+						[locationDataDelegate didFailToUpdateLocationWithError:
+						 [NSError errorWithDomain:kCLErrorDomain
+											 code:kCLErrorLocationUnknown
+										 userInfo:nil]];
+						
+						[threadLock lock];
+						[threadLock unlockWithCondition:kThreadStopping];
+						[now release];
+					}
+					else
+					{
+						// rewind and restart
+						endPointPassed = NO;
+						[start release];
+						start = [[NSDate date] retain];
+					}
 					
 					[threadLock lock];
-					[threadLock unlockWithCondition:kThreadStopping];
-					[threadLock lock];
-					[now release];
 					continue;
 				}
-							
-				endPointPassed = YES;
+				else
+				{
+					endPointPassed = YES;
+				}
 			}
 			
 			[oldLocation release];
 			oldLocation = newLocation;
 			newLocation = [[self locationForDate:virtualNow 
 							   withInterpolation:kAPGPXInterpolationMethodLinear] retain];
+			newLocation.timestamp = now;
 			NSLog(@"%@",newLocation);
 			
 			// notify the location manager
@@ -597,13 +615,27 @@ typedef enum
 			NSLog(@"%@",newLocation);
 			if ( !newLocation )
 			{
-				[locationDataDelegate didFailToUpdateLocationWithError:
-				 [NSError errorWithDomain:kCLErrorDomain
-									 code:kCLErrorLocationUnknown
-								 userInfo:nil]];
-				
-				[threadLock lock];
-				[threadLock unlockWithCondition:kThreadStopping];
+				// run out of points
+				if ( !safeAutorepeat )
+				{
+					// exit the loop
+					[locationDataDelegate didFailToUpdateLocationWithError:
+					 [NSError errorWithDomain:kCLErrorDomain
+										 code:kCLErrorLocationUnknown
+									 userInfo:nil]];
+					
+					[threadLock lock];
+					[threadLock unlockWithCondition:kThreadStopping];
+				}
+				else
+				{
+					// rewind and restart
+					[oldLocation release];
+					oldLocation = nil;
+					
+					pointIndex = 0;
+				}
+
 				[threadLock lock];
 				continue;
 			}
@@ -637,6 +669,7 @@ typedef enum
 				
 				// wrap the delegate call into another autorelease pool because nestedPool can already be released here
 				NSAutoreleasePool* delegatePool = [[NSAutoreleasePool alloc] init];
+				newLocation.timestamp = [NSDate date];
 				[locationDataDelegate didUpdateToLocation:newLocation fromLocation:oldLocation];
 				[delegatePool release];
 				
@@ -652,6 +685,7 @@ typedef enum
 	[nestedPool release];
 	[oldLocation release];
 	[newLocation release];
+	[start release];
 	
 	[threadLock lock];
 	[threadLock unlockWithCondition:kThreadStopped];

@@ -10,12 +10,15 @@
 
 
 @interface APLocation : CLLocation
-#if !TARGET_OS_IPHONE
 {
+#if !TARGET_OS_IPHONE
 	CLLocationSpeed apSpeed;
 	CLLocationDirection apCourse;
+#endif
+	NSDate* apTimestamp;
 }
 
+#if !TARGET_OS_IPHONE
 @property (assign, NS_NONATOMIC_IPHONEONLY) CLLocationSpeed speed;
 @property (assign, NS_NONATOMIC_IPHONEONLY) CLLocationDirection course;
 
@@ -28,5 +31,7 @@
 			   timestamp:(NSDate*)aTimestamp;
 
 #endif
+
+@property (assign, NS_NONATOMIC_IPHONEONLY) NSDate* timestamp;
 
 @end

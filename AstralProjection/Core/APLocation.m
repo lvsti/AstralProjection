@@ -14,6 +14,9 @@ static NSString* const kLocationDescriptionFormat = @"<%+3.8f, %+3.8f> +/- %4.2f
 
 @implementation APLocation
 
+
+@synthesize timestamp = apTimestamp;
+
 #if !TARGET_OS_IPHONE
 
 @synthesize speed = apSpeed;
@@ -38,6 +41,7 @@ static NSString* const kLocationDescriptionFormat = @"<%+3.8f, %+3.8f> +/- %4.2f
 	{
 		self.speed = aSpeed;
 		self.course = aCourse;
+		self.timestamp = aTimestamp;
 	}
 	
 	return self;
@@ -60,6 +64,28 @@ static NSString* const kLocationDescriptionFormat = @"<%+3.8f, %+3.8f> +/- %4.2f
 
 #endif
 
+
+// -----------------------------------------------------------------------------
+// APLocation::setTimestamp:
+// -----------------------------------------------------------------------------
+- (void)setTimestamp:(NSDate*)aTimestamp
+{
+	if ( apTimestamp != aTimestamp )
+	{
+		[apTimestamp release];
+		apTimestamp = [aTimestamp retain];
+	}
+}
+
+
+// -----------------------------------------------------------------------------
+// APLocation::dealloc
+// -----------------------------------------------------------------------------
+- (void)dealloc
+{
+	self.timestamp = nil;
+	[super dealloc];
+}
 
 
 @end
