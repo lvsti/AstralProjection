@@ -85,9 +85,9 @@ const CLLocationDegrees kCLHeadingFilterNone = -1.0;
 // -----------------------------------------------------------------------------
 - (void)didUpdateToLocation:(APLocation*)aNewLocation fromLocation:(APLocation*)aOldLocation
 {
-	if ( !aOldLocation || 
-		 self.distanceFilter == kCLDistanceFilterNone ||
-		 [aNewLocation distanceFromLocation:aOldLocation] >= ABS(self.distanceFilter) )
+	if ( !lastRegisteredLocation || 
+		self.distanceFilter == kCLDistanceFilterNone ||
+		[aNewLocation distanceFromLocation:lastRegisteredLocation] >= ABS(self.distanceFilter) )
 	{
 		[lastRegisteredLocation release];
 		lastRegisteredLocation = [aNewLocation retain];
