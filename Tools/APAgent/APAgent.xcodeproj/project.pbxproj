@@ -25,12 +25,12 @@
 		E804769E1242BB6F001B2346 /* SBJsonWriter.m in Sources */ = {isa = PBXBuildFile; fileRef = E80476981242BB6F001B2346 /* SBJsonWriter.m */; };
 		E80476F71242C8C3001B2346 /* Icon.png in Resources */ = {isa = PBXBuildFile; fileRef = E80476F51242C8C3001B2346 /* Icon.png */; };
 		E80476F81242C8C3001B2346 /* Icon@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = E80476F61242C8C3001B2346 /* Icon@2x.png */; };
+		E84AC6031796776B000CCF9C /* ashland.gpx in Resources */ = {isa = PBXBuildFile; fileRef = E84AC6021796776B000CCF9C /* ashland.gpx */; };
 		E87A135B126B443A009E5F88 /* APHeading.m in Sources */ = {isa = PBXBuildFile; fileRef = E87A1349126B443A009E5F88 /* APHeading.m */; };
 		E87A135C126B443A009E5F88 /* APLocation.m in Sources */ = {isa = PBXBuildFile; fileRef = E87A134D126B443A009E5F88 /* APLocation.m */; };
 		E87A135D126B443A009E5F88 /* APLocationManager.m in Sources */ = {isa = PBXBuildFile; fileRef = E87A1351126B443A009E5F88 /* APLocationManager.m */; };
 		E87A135F126B443A009E5F88 /* APGPXDataSource.m in Sources */ = {isa = PBXBuildFile; fileRef = E87A1358126B443A009E5F88 /* APGPXDataSource.m */; };
 		E87A1360126B443A009E5F88 /* APGPXParser.m in Sources */ = {isa = PBXBuildFile; fileRef = E87A135A126B443A009E5F88 /* APGPXParser.m */; };
-		E87A1362126B45C9009E5F88 /* ashland.gpx in Resources */ = {isa = PBXBuildFile; fileRef = E87A1361126B45C9009E5F88 /* ashland.gpx */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -65,6 +65,7 @@
 		E80476981242BB6F001B2346 /* SBJsonWriter.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SBJsonWriter.m; sourceTree = "<group>"; };
 		E80476F51242C8C3001B2346 /* Icon.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = Icon.png; sourceTree = "<group>"; };
 		E80476F61242C8C3001B2346 /* Icon@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Icon@2x.png"; sourceTree = "<group>"; };
+		E84AC6021796776B000CCF9C /* ashland.gpx */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; name = ashland.gpx; path = ../Resources/ashland.gpx; sourceTree = "<group>"; };
 		E87A1348126B443A009E5F88 /* APHeading.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = APHeading.h; sourceTree = "<group>"; };
 		E87A1349126B443A009E5F88 /* APHeading.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = APHeading.m; sourceTree = "<group>"; };
 		E87A134A126B443A009E5F88 /* APHeadingDataDelegate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = APHeadingDataDelegate.h; sourceTree = "<group>"; };
@@ -79,7 +80,6 @@
 		E87A1358126B443A009E5F88 /* APGPXDataSource.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = APGPXDataSource.m; sourceTree = "<group>"; };
 		E87A1359126B443A009E5F88 /* APGPXParser.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = APGPXParser.h; sourceTree = "<group>"; };
 		E87A135A126B443A009E5F88 /* APGPXParser.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = APGPXParser.m; sourceTree = "<group>"; };
-		E87A1361126B45C9009E5F88 /* ashland.gpx */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; path = ashland.gpx; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -144,7 +144,7 @@
 		29B97317FDCFA39411CA2CEA /* Resources */ = {
 			isa = PBXGroup;
 			children = (
-				E87A1361126B45C9009E5F88 /* ashland.gpx */,
+				E84AC6021796776B000CCF9C /* ashland.gpx */,
 				E80476F51242C8C3001B2346 /* Icon.png */,
 				E80476F61242C8C3001B2346 /* Icon@2x.png */,
 				2899E5210DE3E06400AC0155 /* APAgentViewController.xib */,
@@ -288,7 +288,7 @@
 				2899E5220DE3E06400AC0155 /* APAgentViewController.xib in Resources */,
 				E80476F71242C8C3001B2346 /* Icon.png in Resources */,
 				E80476F81242C8C3001B2346 /* Icon@2x.png in Resources */,
-				E87A1362126B45C9009E5F88 /* ashland.gpx in Resources */,
+				E84AC6031796776B000CCF9C /* ashland.gpx in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
