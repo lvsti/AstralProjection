@@ -2,18 +2,29 @@
 //  APLocation.m
 //  AstralProjection
 //
-//  Created by Lvsti on 2010.10.10..
+//  Created by Lkxf on 2010.10.10..
 //
 
 #import "APLocation.h"
+
 
 #if !TARGET_OS_IPHONE
 static NSString* const kLocationDescriptionFormat = @"<%+3.8f, %+3.8f> +/- %4.2fm (speed %4.2f mps / course %3.2f) @ %@";
 #endif
 
 
-@implementation APLocation
+@interface APLocation ()
+{
+#if !TARGET_OS_IPHONE
+	CLLocationSpeed apSpeed;
+	CLLocationDirection apCourse;
+#endif
+	NSDate* apTimestamp;
+}
+@end
 
+
+@implementation APLocation
 
 @synthesize timestamp = apTimestamp;
 
@@ -39,8 +50,8 @@ static NSString* const kLocationDescriptionFormat = @"<%+3.8f, %+3.8f> +/- %4.2f
 						  verticalAccuracy:aVAccuracy
 								 timestamp:aTimestamp]) )
 	{
-		self.speed = aSpeed;
-		self.course = aCourse;
+		apSpeed = aSpeed;
+		apCourse = aCourse;
 		self.timestamp = aTimestamp;
 	}
 	
@@ -75,6 +86,15 @@ static NSString* const kLocationDescriptionFormat = @"<%+3.8f, %+3.8f> +/- %4.2f
 		[apTimestamp release];
 		apTimestamp = [aTimestamp retain];
 	}
+}
+
+
+// -----------------------------------------------------------------------------
+// APLocation::timestamp
+// -----------------------------------------------------------------------------
+- (NSDate*)timestamp
+{
+	return apTimestamp;
 }
 
 

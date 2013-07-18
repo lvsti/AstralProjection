@@ -2,7 +2,7 @@
 //  APLocationManager.m
 //  AstralProjection
 //
-//  Created by Lvsti on 2010.09.13..
+//  Created by Lkxf on 2010.09.13..
 //
 
 #import "APLocationManager.h"
@@ -11,12 +11,20 @@
 #import "APHeading.h"
 
 
-#if !TARGET_OS_IPHONE
-const CLLocationDegrees kCLHeadingFilterNone = -1.0;
-#endif
-
-
 @interface APLocationManager ()
+{
+	NSThread* locationThread;
+	APLocation* lastRegisteredLocation;
+	
+	NSThread* headingThread;
+	APHeading* lastRegisteredHeading;
+	
+#if !TARGET_OS_IPHONE
+	CLLocationDegrees headingFilter;
+	CLDeviceOrientation headingOrientation;
+#endif
+}
+
 - (void)updateLocationDelegateWithData:(NSArray*)aLocationData;
 - (void)updateLocationDelegateWithError:(NSError*)aError;
 - (void)updateHeadingDelegateWithHeading:(APHeading*)aHeading;
@@ -27,10 +35,11 @@ const CLLocationDegrees kCLHeadingFilterNone = -1.0;
 @implementation APLocationManager
 
 @synthesize location = lastRegisteredLocation;
-@synthesize heading = lastRegisteredHeading;
 
 #if !TARGET_OS_IPHONE
+@synthesize heading = lastRegisteredHeading;
 @synthesize headingFilter;
+@synthesize headingOrientation;
 #endif
 
 
@@ -86,8 +95,8 @@ const CLLocationDegrees kCLHeadingFilterNone = -1.0;
 - (void)didUpdateToLocation:(APLocation*)aNewLocation fromLocation:(APLocation*)aOldLocation
 {
 	if ( !lastRegisteredLocation || 
-		self.distanceFilter == kCLDistanceFilterNone ||
-		[aNewLocation distanceFromLocation:lastRegisteredLocation] >= ABS(self.distanceFilter) )
+		 self.distanceFilter == kCLDistanceFilterNone ||
+		 [aNewLocation distanceFromLocation:lastRegisteredLocation] >= ABS(self.distanceFilter) )
 	{
 		[lastRegisteredLocation release];
 		lastRegisteredLocation = [aNewLocation retain];
@@ -98,9 +107,19 @@ const CLLocationDegrees kCLHeadingFilterNone = -1.0;
 			{
 				if ( locationThread == [NSThread currentThread] )
 				{
-					[self.delegate locationManager:self
-							   didUpdateToLocation:aNewLocation
-									  fromLocation:aOldLocation];
+					if ( [self.delegate respondsToSelector:@selector(locationManager:didUpdateLocations:)] )
+					{
+						[self.delegate performSelector:@selector(locationManager:didUpdateLocations:)
+											withObject:self
+											withObject:[NSArray arrayWithObject:aNewLocation]];
+					}
+					else
+					{
+						// deprecated method
+						[self.delegate locationManager:self
+								   didUpdateToLocation:aNewLocation
+										  fromLocation:aOldLocation];
+					}
 				}
 				else
 				{
@@ -120,9 +139,19 @@ const CLLocationDegrees kCLHeadingFilterNone = -1.0;
 // -----------------------------------------------------------------------------
 - (void)updateLocationDelegateWithData:(NSArray*)aLocationData
 {
-	[self.delegate locationManager:self
-			   didUpdateToLocation:[aLocationData count]? [aLocationData objectAtIndex:0]: nil
-					  fromLocation:([aLocationData count]>1)? [aLocationData objectAtIndex:1]: nil];
+	if ( [self.delegate respondsToSelector:@selector(locationManager:didUpdateLocations:)] )
+	{
+		[self.delegate performSelector:@selector(locationManager:didUpdateLocations:)
+							withObject:self
+							withObject:[NSArray arrayWithObject:[aLocationData objectAtIndex:0]]];
+	}
+	else
+	{
+		// deprecated method
+		[self.delegate locationManager:self
+				   didUpdateToLocation:[aLocationData count]? [aLocationData objectAtIndex:0]: nil
+						  fromLocation:([aLocationData count]>1)? [aLocationData objectAtIndex:1]: nil];
+	}
 }
 
 
@@ -144,7 +173,7 @@ const CLLocationDegrees kCLHeadingFilterNone = -1.0;
 				[self performSelector:@selector(updateLocationDelegateWithError:)
 							 onThread:locationThread
 						   withObject:aError
-						waitUntilDone:NO];
+						waitUntilDone:YES];
 			}
 		}
 	}

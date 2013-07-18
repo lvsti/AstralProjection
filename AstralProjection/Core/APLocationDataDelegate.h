@@ -2,7 +2,7 @@
 //  APLocationDataDelegate.h
 //  AstralProjection
 //
-//  Created by Lvsti on 2010.09.13..
+//  Created by Lkxf on 2010.09.13..
 //
 
 #import <Foundation/Foundation.h>

@@ -2,7 +2,7 @@
 //  APHeadingDataSource.h
 //  AstralProjection
 //
-//  Created by Lvsti on 2010.10.10..
+//  Created by Lkxf on 2010.10.10..
 //
 
 #import <Foundation/Foundation.h>

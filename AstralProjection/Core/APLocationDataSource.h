@@ -2,7 +2,7 @@
 //  APLocationDataSource.h
 //  AstralProjection
 //
-//  Created by Lvsti on 2010.09.11..
+//  Created by Lkxf on 2010.09.11..
 //
 
 #import <Foundation/Foundation.h>

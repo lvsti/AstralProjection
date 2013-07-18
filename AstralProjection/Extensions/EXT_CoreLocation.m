@@ -2,12 +2,12 @@
 //  EXT_CoreLocation.m
 //  AstralProjection
 //
-//  Created by Lvsti on 2011.02.03..
+//  Created by Lkxf on 2011.02.03..
 //
 
 #import "EXT_CoreLocation.h"
 
-#if !TARGET_OS_IPHONE
+#if !TARGET_OS_IPHONE && __MAC_OS_X_VERSION_MIN_REQUIRED <= __MAC_10_6
 
 CLLocationCoordinate2D CLLocationCoordinate2DMake(CLLocationDegrees aLatitude,
 												  CLLocationDegrees aLongitude)

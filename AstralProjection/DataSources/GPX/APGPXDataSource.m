@@ -2,7 +2,7 @@
 //  APGPXDataSource.m
 //  AstralProjection
 //
-//  Created by Lvsti on 2010.09.13..
+//  Created by Lkxf on 2010.09.13..
 //
 
 #import "APGPXDataSource.h"
@@ -36,6 +36,21 @@ typedef enum
 
 
 @interface APGPXDataSource ()
+{
+	NSArray* waypoints;
+	NSArray* routes;
+	NSArray* tracks;
+	
+	APGPXDataSet activeDataSet;
+	NSUInteger activeSubsetIndex;
+	
+	double timeScale;
+	NSTimeInterval eventFrequency;
+	BOOL autorepeat;
+	NSConditionLock* threadLock;
+	
+	id<APLocationDataDelegate> locationDataDelegate;
+}
 
 - (void)getStartDate:(NSDate**)aStartDate andStopDate:(NSDate**)aStopDate;
 - (BOOL)timestamp:(NSDate*)aDate fallsInSegmentFromPoint:(NSDictionary**)aFromPoint
@@ -143,12 +158,12 @@ typedef enum
 	if ( activeDataSet == kAPGPXDataSetRoute && aIndex >= [routes count] )
 	{
 		[NSException raise:NSRangeException
-					format:@"Route data set bounds exceeded (count:%d, accessed:%d)",[routes count],aIndex];
+					format:@"Route data set bounds exceeded (count:%lu, accessed:%lu)",(unsigned long)[routes count],(unsigned long)aIndex];
 	}
 	else if ( activeDataSet == kAPGPXDataSetTrack && aIndex >= [tracks count] )
 	{
 		[NSException raise:NSRangeException
-					format:@"Track data set bounds exceeded (count:%d, accessed:%d)",[tracks count],aIndex];
+					format:@"Track data set bounds exceeded (count:%lu, accessed:%lu)",(unsigned long)[tracks count],(unsigned long)aIndex];
 	}
 
 	activeSubsetIndex = aIndex;

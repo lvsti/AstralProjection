@@ -27,6 +27,8 @@
 		E80476F81242C8C3001B2346 /* Icon@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = E80476F61242C8C3001B2346 /* Icon@2x.png */; };
 		E84AC6031796776B000CCF9C /* ashland.gpx in Resources */ = {isa = PBXBuildFile; fileRef = E84AC6021796776B000CCF9C /* ashland.gpx */; };
 		E84AC6091796B48C000CCF9C /* Default-568h@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = E84AC6081796B48C000CCF9C /* Default-568h@2x.png */; };
+		E84AC60F1796CCBA000CCF9C /* EXT_CLHeading.m in Sources */ = {isa = PBXBuildFile; fileRef = E84AC60C1796CCBA000CCF9C /* EXT_CLHeading.m */; };
+		E84AC6101796CCBA000CCF9C /* EXT_CoreLocation.m in Sources */ = {isa = PBXBuildFile; fileRef = E84AC60E1796CCBA000CCF9C /* EXT_CoreLocation.m */; };
 		E87A135B126B443A009E5F88 /* APHeading.m in Sources */ = {isa = PBXBuildFile; fileRef = E87A1349126B443A009E5F88 /* APHeading.m */; };
 		E87A135C126B443A009E5F88 /* APLocation.m in Sources */ = {isa = PBXBuildFile; fileRef = E87A134D126B443A009E5F88 /* APLocation.m */; };
 		E87A135D126B443A009E5F88 /* APLocationManager.m in Sources */ = {isa = PBXBuildFile; fileRef = E87A1351126B443A009E5F88 /* APLocationManager.m */; };
@@ -68,6 +70,10 @@
 		E80476F61242C8C3001B2346 /* Icon@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Icon@2x.png"; sourceTree = "<group>"; };
 		E84AC6021796776B000CCF9C /* ashland.gpx */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; name = ashland.gpx; path = ../Resources/ashland.gpx; sourceTree = "<group>"; };
 		E84AC6081796B48C000CCF9C /* Default-568h@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Default-568h@2x.png"; sourceTree = "<group>"; };
+		E84AC60B1796CCBA000CCF9C /* EXT_CLHeading.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = EXT_CLHeading.h; sourceTree = "<group>"; };
+		E84AC60C1796CCBA000CCF9C /* EXT_CLHeading.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = EXT_CLHeading.m; sourceTree = "<group>"; };
+		E84AC60D1796CCBA000CCF9C /* EXT_CoreLocation.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = EXT_CoreLocation.h; sourceTree = "<group>"; };
+		E84AC60E1796CCBA000CCF9C /* EXT_CoreLocation.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = EXT_CoreLocation.m; sourceTree = "<group>"; };
 		E87A1348126B443A009E5F88 /* APHeading.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = APHeading.h; sourceTree = "<group>"; };
 		E87A1349126B443A009E5F88 /* APHeading.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = APHeading.m; sourceTree = "<group>"; };
 		E87A134A126B443A009E5F88 /* APHeadingDataDelegate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = APHeadingDataDelegate.h; sourceTree = "<group>"; };
@@ -189,11 +195,23 @@
 			path = ../../../ThirdParty/JSON;
 			sourceTree = "<group>";
 		};
+		E84AC60A1796CCBA000CCF9C /* Extensions */ = {
+			isa = PBXGroup;
+			children = (
+				E84AC60B1796CCBA000CCF9C /* EXT_CLHeading.h */,
+				E84AC60C1796CCBA000CCF9C /* EXT_CLHeading.m */,
+				E84AC60D1796CCBA000CCF9C /* EXT_CoreLocation.h */,
+				E84AC60E1796CCBA000CCF9C /* EXT_CoreLocation.m */,
+			);
+			path = Extensions;
+			sourceTree = "<group>";
+		};
 		E87A1346126B443A009E5F88 /* AstralProjection */ = {
 			isa = PBXGroup;
 			children = (
 				E87A1347126B443A009E5F88 /* Core */,
 				E87A1352126B443A009E5F88 /* DataSources */,
+				E84AC60A1796CCBA000CCF9C /* Extensions */,
 			);
 			name = AstralProjection;
 			path = ../../AstralProjection;
@@ -318,6 +336,8 @@
 				E87A135D126B443A009E5F88 /* APLocationManager.m in Sources */,
 				E87A135F126B443A009E5F88 /* APGPXDataSource.m in Sources */,
 				E87A1360126B443A009E5F88 /* APGPXParser.m in Sources */,
+				E84AC60F1796CCBA000CCF9C /* EXT_CLHeading.m in Sources */,
+				E84AC6101796CCBA000CCF9C /* EXT_CoreLocation.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -359,6 +379,7 @@
 				GCC_C_LANGUAGE_STANDARD = c99;
 				GCC_WARN_ABOUT_RETURN_TYPE = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 5.0;
 				PREBINDING = NO;
 				SDKROOT = iphoneos;
 			};
@@ -372,6 +393,7 @@
 				GCC_C_LANGUAGE_STANDARD = c99;
 				GCC_WARN_ABOUT_RETURN_TYPE = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 5.0;
 				OTHER_CFLAGS = "-DNS_BLOCK_ASSERTIONS=1";
 				PREBINDING = NO;
 				SDKROOT = iphoneos;

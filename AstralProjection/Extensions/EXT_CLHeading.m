@@ -2,14 +2,16 @@
 //  EXT_CLHeading.m
 //  AstralProjection
 //
-//  Created by Lvsti on 2011.02.03..
+//  Created by Lkxf on 2011.02.03..
 //
 
 
 #import "EXT_CLHeading.h"
 
 
-#if !TARGET_OS_IPHONE
+#if !TARGET_OS_IPHONE && __MAC_OS_X_VERSION_MIN_REQUIRED <= __MAC_10_6
+
+const CLLocationDegrees kCLHeadingFilterNone = -1.0;
 
 static NSString* const kHeadingDescriptionFormat = @"magneticHeading %3.2f trueHeading %3.2f accuracy %3.2f x %3.3f y %3.3f z %3.3f @ %@";
 

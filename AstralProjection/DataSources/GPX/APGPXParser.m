@@ -2,7 +2,7 @@
 //  APGPXParser.m
 //  AstralProjection
 //
-//  Created by Lvsti on 2010.09.11..
+//  Created by Lkxf on 2010.09.11..
 //
 
 #import "APGPXParser.h"
@@ -38,7 +38,40 @@ static NSString* const kGPXElemTrackSegment = @"trkseg";
 static NSString* const kGPXElemTrackPoint = @"trkpt";
 
 
+typedef enum
+{
+	kGPXParsingLevelDocument,
+	kGPXParsingLevelBody,
+	kGPXParsingLevelRoute,
+	kGPXParsingLevelTrack,
+	kGPXParsingLevelTrackSegment
+} GPXParsingLevel;
+
+typedef enum
+{
+	kGPXPointParsingLevelNone,
+	kGPXPointParsingLevelBase,
+	kGPXPointParsingLevelTime,
+	kGPXPointParsingLevelElevation
+} GPXPointParsingLevel;
+
+
+
 @interface APGPXParser ()
+{
+	/// accumulator of the character (=non-element) data within an element
+	NSMutableString* outstandingCharacters;
+	
+	NSMutableDictionary* outstandingPoint;
+	
+	/// current levels of parsing
+	GPXParsingLevel parsingLevel;
+	GPXPointParsingLevel pointParsingLevel;
+	
+	NSMutableArray* waypoints;
+	NSMutableArray* routes;
+	NSMutableArray* tracks;
+}
 
 - (void)parseURL:(NSURL*)aUrl;
 
@@ -198,10 +231,16 @@ NSInteger GPXTrackSegmentSortByTimestampAsc( id aLeft, id aRight, void* aContext
 	{
 		case kGPXParsingLevelDocument:
 		{
-			if ( [aNamespaceURI isEqualToString:kGPX10NamespaceURI] || 
-				 [aNamespaceURI isEqualToString:kGPX11NamespaceURI] &&
-				 [aElementName isEqualToString:kGPXElemRoot] )
+			if ( [aElementName isEqualToString:kGPXElemRoot] )
 			{
+				if ( ![aNamespaceURI isEqualToString:kGPX10NamespaceURI] &&
+					 ![aNamespaceURI isEqualToString:kGPX11NamespaceURI] )
+				{
+					// unknown format
+					[NSException raise:@"GPXParserException" format:@"unsupported GPX version"];
+					return;
+				}
+				
 				// GPX body starts
 				parsingLevel = kGPXParsingLevelBody;
 			}
@@ -303,6 +342,11 @@ NSInteger GPXTrackSegmentSortByTimestampAsc( id aLeft, id aRight, void* aContext
 					// prepare to accept character data
 					outstandingCharacters = [[NSMutableString alloc] init];
 				}				
+				break;
+			}
+				
+			default:
+			{
 				break;
 			}
 		}
@@ -446,6 +490,11 @@ NSInteger GPXTrackSegmentSortByTimestampAsc( id aLeft, id aRight, void* aContext
 					[outstandingCharacters release];
 					outstandingCharacters = nil;
 				}
+				break;
+			}
+
+			default:
+			{
 				break;
 			}
 		}

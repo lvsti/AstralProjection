@@ -2,7 +2,7 @@
 //  APAgentDataSource.m
 //  AstralProjection
 //
-//  Created by Lvsti on 2010.09.13..
+//  Created by Lkxf on 2010.09.13..
 //
 
 #import "APAgentDataSource.h"
@@ -17,15 +17,10 @@
 #import "APLocation.h"
 #import "APHeadingDataDelegate.h"
 #import "APHeading.h"
-
-#if !TARGET_OS_IPHONE
 #import "EXT_CoreLocation.h"
-#endif
 
 
 static NSString* const kDateFormat = @"yyyy-MM-dd'T'HH:mm:ss'Z'";
-
-static const unsigned short kAPFieldScoutListenPort = 0x6a7e;
 
 static const NSUInteger kMaxPacketSize = 4096;
 
@@ -36,6 +31,17 @@ static const NSInteger kThreadStopped = 2;
 
 
 @interface APAgentDataSource ()
+{
+	id<APLocationDataDelegate> locationDataDelegate;
+	id<APHeadingDataDelegate> headingDataDelegate;
+	int scoutSocket;
+	NSConditionLock* threadLock;
+	NSDateFormatter* dateFmt;
+	
+	BOOL isLocationActive;
+	BOOL isHeadingActive;
+}
+
 - (void)receiverThread;
 - (void)processLocationUpdateMessage:(NSDictionary*)aMessage;
 - (void)processLocationErrorMessage:(NSDictionary*)aMessage;
@@ -51,9 +57,9 @@ static const NSInteger kThreadStopped = 2;
 
 
 // -----------------------------------------------------------------------------
-// APAgentDataSource::init
+// APAgentDataSource::initWithUdpPort:
 // -----------------------------------------------------------------------------
-- (id)init
+- (id)initWithUdpPort:(unsigned short)aPort
 {
 	if ( (self = [super init]) )
 	{
@@ -70,7 +76,7 @@ static const NSInteger kThreadStopped = 2;
 		
 		bzero(&address, slen);
 		address.sin_family = AF_INET;
-		address.sin_port = htons(kAPFieldScoutListenPort);
+		address.sin_port = htons(aPort);
 		address.sin_addr.s_addr = htonl(INADDR_ANY);
 		
 		if ( bind(scoutSocket, (const struct sockaddr*)&address, slen) < 0 )

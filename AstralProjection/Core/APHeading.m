@@ -2,12 +2,26 @@
 //  APHeading.m
 //  AstralProjection
 //
-//  Created by Lvsti on 2010.10.10..
+//  Created by Lkxf on 2010.10.10..
 //
 
 #import "APHeading.h"
 
 static NSString* const kHeadingDescriptionFormat = @"magneticHeading %3.2f trueHeading %3.2f accuracy %3.2f x %3.3f y %3.3f z %3.3f @ %@";
+
+
+@interface APHeading ()
+{
+	CLLocationDirection apMagneticHeading;
+	CLLocationDirection apTrueHeading;
+	CLLocationDirection apHeadingAccuracy;
+	NSDate* apTimestamp;
+	CLHeadingComponentValue apX;
+	CLHeadingComponentValue apY;
+	CLHeadingComponentValue apZ;
+}
+
+@end
 
 
 @implementation APHeading

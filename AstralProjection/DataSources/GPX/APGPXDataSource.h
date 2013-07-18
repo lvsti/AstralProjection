@@ -2,7 +2,7 @@
 //  APGPXDataSource.h
 //  AstralProjection
 //
-//  Created by Lvsti on 2010.09.13..
+//  Created by Lkxf on 2010.09.13..
 //
 
 #import <Foundation/Foundation.h>
@@ -18,21 +18,6 @@ typedef enum
 
 
 @interface APGPXDataSource : NSObject <APLocationDataSource>
-{
-	NSArray* waypoints;
-	NSArray* routes;
-	NSArray* tracks;
-
-	APGPXDataSet activeDataSet;
-	NSUInteger activeSubsetIndex;
-
-	double timeScale;
-	NSTimeInterval eventFrequency;
-	BOOL autorepeat;
-	NSConditionLock* threadLock;
-	
-	id<APLocationDataDelegate> locationDataDelegate;
-}
 
 @property (nonatomic, assign) double timeScale;
 @property (nonatomic, assign) NSTimeInterval eventFrequency;
