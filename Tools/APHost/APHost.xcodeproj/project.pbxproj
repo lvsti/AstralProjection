@@ -21,6 +21,7 @@
 		E804765B1242B723001B2346 /* APGPXParser.m in Sources */ = {isa = PBXBuildFile; fileRef = E80476571242B723001B2346 /* APGPXParser.m */; };
 		E8496C8212FD7EFE004D1871 /* EXT_CoreLocation.m in Sources */ = {isa = PBXBuildFile; fileRef = E8496C8112FD7EFE004D1871 /* EXT_CoreLocation.m */; };
 		E84AC6051796777B000CCF9C /* ashland.gpx in Resources */ = {isa = PBXBuildFile; fileRef = E84AC6041796777B000CCF9C /* ashland.gpx */; };
+		E84AC6071796B480000CCF9C /* Default-568h@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = E84AC6061796B480000CCF9C /* Default-568h@2x.png */; };
 		E8D84A141261C04100A2EBEF /* APLocation.m in Sources */ = {isa = PBXBuildFile; fileRef = E8D84A131261C04100A2EBEF /* APLocation.m */; };
 		E8D84A171261C07E00A2EBEF /* APHeading.m in Sources */ = {isa = PBXBuildFile; fileRef = E8D84A161261C07E00A2EBEF /* APHeading.m */; };
 		E8D84B461262134800A2EBEF /* APAgentDataSource.m in Sources */ = {isa = PBXBuildFile; fileRef = E8D84B451262134800A2EBEF /* APAgentDataSource.m */; };
@@ -59,6 +60,7 @@
 		E8496C8012FD7EFE004D1871 /* EXT_CoreLocation.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = EXT_CoreLocation.h; sourceTree = "<group>"; };
 		E8496C8112FD7EFE004D1871 /* EXT_CoreLocation.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = EXT_CoreLocation.m; sourceTree = "<group>"; };
 		E84AC6041796777B000CCF9C /* ashland.gpx */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; name = ashland.gpx; path = ../Resources/ashland.gpx; sourceTree = "<group>"; };
+		E84AC6061796B480000CCF9C /* Default-568h@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Default-568h@2x.png"; sourceTree = "<group>"; };
 		E8D84A101261BF5000A2EBEF /* APHeadingDataDelegate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = APHeadingDataDelegate.h; sourceTree = "<group>"; };
 		E8D84A111261BF5000A2EBEF /* APHeadingDataSource.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = APHeadingDataSource.h; sourceTree = "<group>"; };
 		E8D84A121261C04100A2EBEF /* APLocation.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = APLocation.h; sourceTree = "<group>"; };
@@ -123,6 +125,7 @@
 		29B97314FDCFA39411CA2CEA /* CustomTemplate */ = {
 			isa = PBXGroup;
 			children = (
+				E84AC6061796B480000CCF9C /* Default-568h@2x.png */,
 				080E96DDFE201D6D7F000001 /* Classes */,
 				29B97315FDCFA39411CA2CEA /* Other Sources */,
 				29B97317FDCFA39411CA2CEA /* Resources */,
@@ -304,6 +307,7 @@
 				28AD733F0D9D9553002E5188 /* MainWindow.xib in Resources */,
 				2899E5220DE3E06400AC0155 /* APHostViewController.xib in Resources */,
 				E84AC6051796777B000CCF9C /* ashland.gpx in Resources */,
+				E84AC6071796B480000CCF9C /* Default-568h@2x.png in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
