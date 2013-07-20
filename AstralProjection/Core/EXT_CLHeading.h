@@ -5,6 +5,7 @@
 //  Created by Lkxf on 2011.02.03..
 //
 
+#import <Foundation/Foundation.h>
 
 #if TARGET_OS_IPHONE || __MAC_OS_X_VERSION_MAX_ALLOWED > __MAC_10_6
 
@@ -13,13 +14,14 @@
 #else
 
 #import <CoreLocation/CLLocation.h>
-#import <Foundation/Foundation.h>
 
 typedef double CLHeadingComponentValue;
-
 extern const CLLocationDegrees kCLHeadingFilterNone;
 
-@interface CLHeading : NSObject <NSCopying, NSCoding>
+#endif
+
+
+@interface APHeading : NSObject <NSCopying, NSCoding>
 
 @property(readonly, nonatomic) CLLocationDirection magneticHeading;
 @property(readonly, nonatomic) CLLocationDirection trueHeading;
@@ -32,6 +34,11 @@ extern const CLLocationDegrees kCLHeadingFilterNone;
 - (NSString*)description;
 
 @end
+
+
+#if !TARGET_OS_IPHONE && __MAC_OS_X_VERSION_MAX_ALLOWED <= __MAC_10_6
+
+@compatibility_alias CLHeading APHeading;
 
 #endif
 

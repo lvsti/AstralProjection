@@ -7,12 +7,13 @@
 
 #import <Foundation/Foundation.h>
 
-
-@class APHeading;
+@class CLHeading;
+@protocol APHeadingDataSource;
 
 
 @protocol APHeadingDataDelegate <NSObject>
 
-- (void)didUpdateToHeading:(APHeading*)aNewHeading;
+- (void)headingDataSource:(id<APHeadingDataSource>)aDataSource
+	   didUpdateToHeading:(CLHeading*)aNewHeading;
 
 @end

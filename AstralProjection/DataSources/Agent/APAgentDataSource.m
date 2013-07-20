@@ -14,10 +14,11 @@
 
 #import "JSON.h"
 #import "APLocationDataDelegate.h"
-#import "APLocation.h"
 #import "APHeadingDataDelegate.h"
-#import "APHeading.h"
-#import "EXT_CoreLocation.h"
+#import "CLLocation+AstralProjection.h"
+#import "CLHeading+AstralProjection.h"
+#import "EXT_CLLocation.h"
+#import "EXT_CLHeading.h"
 
 
 static NSString* const kDateFormat = @"yyyy-MM-dd'T'HH:mm:ss'Z'";
@@ -321,7 +322,7 @@ static const NSInteger kThreadStopped = 2;
 									   [[oldLoc objectForKey:@"lon"] doubleValue]);
 	
 	
-	APLocation* oldLocation = [[APLocation alloc] initWithCoordinate:coord
+	CLLocation* oldLocation = [[CLLocation alloc] initWithCoordinate:coord
 															altitude:[[oldLoc objectForKey:@"alt"] doubleValue]
 												  horizontalAccuracy:[[oldLoc objectForKey:@"hacc"] doubleValue]
 													verticalAccuracy:[[oldLoc objectForKey:@"vacc"] doubleValue]
@@ -332,7 +333,7 @@ static const NSInteger kThreadStopped = 2;
 	NSDictionary* newLoc = [aMessage objectForKey:@"new"];
 	coord = CLLocationCoordinate2DMake([[newLoc objectForKey:@"lat"] doubleValue],
 									   [[newLoc objectForKey:@"lon"] doubleValue]);
-	APLocation* newLocation = [[APLocation alloc] initWithCoordinate:coord
+	CLLocation* newLocation = [[CLLocation alloc] initWithCoordinate:coord
 															altitude:[[newLoc objectForKey:@"alt"] doubleValue]
 												  horizontalAccuracy:[[newLoc objectForKey:@"hacc"] doubleValue]
 													verticalAccuracy:[[newLoc objectForKey:@"vacc"] doubleValue]
@@ -340,7 +341,9 @@ static const NSInteger kThreadStopped = 2;
 															   speed:[[newLoc objectForKey:@"spd"] doubleValue]
 														   timestamp:[dateFmt dateFromString:[newLoc objectForKey:@"time"]]];
 	
-	[locationDataDelegate didUpdateToLocation:newLocation fromLocation:oldLocation];	
+	[locationDataDelegate locationDataSource:self
+						 didUpdateToLocation:newLocation
+								fromLocation:oldLocation];
 	
 	[oldLocation release];
 	[newLocation release];
@@ -356,7 +359,8 @@ static const NSInteger kThreadStopped = 2;
 										 code:[[aMessage objectForKey:@"code"] integerValue]
 									 userInfo:[aMessage objectForKey:@"userInfo"]];
 	
-	[locationDataDelegate didFailToUpdateLocationWithError:error];
+	[locationDataDelegate locationDataSource:self
+			didFailToUpdateLocationWithError:error];
 }
 
 
@@ -365,17 +369,16 @@ static const NSInteger kThreadStopped = 2;
 // -----------------------------------------------------------------------------
 - (void)processHeadingUpdateMessage:(NSDictionary*)aMessage
 {
-	APHeading* heading = [[APHeading alloc] init];
+	CLHeading* heading = [CLHeading headingWithMagneticHeading:[[aMessage objectForKey:@"mag"] doubleValue]
+												   trueHeading:[[aMessage objectForKey:@"true"] doubleValue]
+													  accuracy:[[aMessage objectForKey:@"acc"] doubleValue]
+													 timestamp:[dateFmt dateFromString:[aMessage objectForKey:@"time"]]
+															 x:[[aMessage objectForKey:@"x"] doubleValue]
+															 y:[[aMessage objectForKey:@"y"] doubleValue]
+															 z:[[aMessage objectForKey:@"z"] doubleValue]];
 	
-	heading.magneticHeading = [[aMessage objectForKey:@"mag"] doubleValue];
-	heading.trueHeading = [[aMessage objectForKey:@"true"] doubleValue];
-	heading.headingAccuracy = [[aMessage objectForKey:@"acc"] doubleValue];
-	heading.timestamp = [dateFmt dateFromString:[aMessage objectForKey:@"time"]];
-	heading.x = [[aMessage objectForKey:@"x"] doubleValue];
-	heading.y = [[aMessage objectForKey:@"y"] doubleValue];
-	heading.z = [[aMessage objectForKey:@"z"] doubleValue];
-	
-	[headingDataDelegate didUpdateToHeading:heading];
+	[headingDataDelegate headingDataSource:self
+						didUpdateToHeading:heading];
 	
 	[heading release];
 }

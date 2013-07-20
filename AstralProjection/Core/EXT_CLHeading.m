@@ -9,14 +9,16 @@
 #import "EXT_CLHeading.h"
 
 
-#if !TARGET_OS_IPHONE && __MAC_OS_X_VERSION_MIN_REQUIRED <= __MAC_10_6
+#if !TARGET_OS_IPHONE && __MAC_OS_X_VERSION_MAX_ALLOWED <= __MAC_10_6
 
 const CLLocationDegrees kCLHeadingFilterNone = -1.0;
+
+#endif
 
 static NSString* const kHeadingDescriptionFormat = @"magneticHeading %3.2f trueHeading %3.2f accuracy %3.2f x %3.3f y %3.3f z %3.3f @ %@";
 
 
-@implementation CLHeading
+@implementation APHeading
 
 @synthesize magneticHeading;
 @synthesize trueHeading;
@@ -65,4 +67,4 @@ static NSString* const kHeadingDescriptionFormat = @"magneticHeading %3.2f trueH
 
 @end
 
-#endif
+
