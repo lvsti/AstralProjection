@@ -6,18 +6,23 @@
 //
 
 #import "APAgentViewController.h"
+
+#import <CoreLocation/CoreLocation.h>
+#import "APHeadingDataSource.h"
 #import "APUDPConnection.h"
 #import "JSON.h"
-#import "APLocationManager.h"
-#import "APGPXDataSource.h"
-#import "APHeadingDataSource.h"
 
 
-#if defined(TARGET_IPHONE_SIMULATOR)
+#define LOCATION_HARDWARE_PRESENT	1
+
+#if TARGET_IPHONE_SIMULATOR
 #undef LOCATION_HARDWARE_PRESENT
-#else
-// enable the GPS hardware here
-//#define LOCATION_HARDWARE_PRESENT
+#define LOCATION_HARDWARE_PRESENT	0
+#endif
+
+#if !LOCATION_HARDWARE_PRESENT
+#import "APAstralProjection.h"
+#import "APGPXDataSource.h"
 #endif
 
 
@@ -26,31 +31,84 @@ static NSString* const kLastIPKey = @"LastIP";
 static NSString* const kLastPortKey = @"LastPort";
 
 
+#if LOCATION_HARDWARE_PRESENT
+@interface APAgentViewController () <CLLocationManagerDelegate, UITextFieldDelegate>
+#else
+@interface APAgentViewController () <CLLocationManagerDelegate, UITextFieldDelegate, APAstralProjectionDelegate>
+#endif
+{
+	CLLocationManager* locationManager;
+	APUDPConnection* udpConnection;
+	
+	BOOL isMonitoringLocation;
+	BOOL isMonitoringHeading;
+	BOOL isSending;
+	
+	NSDictionary* lastMessage;
+
+#if !LOCATION_HARDWARE_PRESENT
+	id<APLocationDataSource> locationDataSource;
+	id<APHeadingDataSource> headingDataSource;
+#endif
+}
+@property (nonatomic, assign) IBOutlet UITextField* addressField;
+@property (nonatomic, assign) IBOutlet UITextField* portField;
+@property (nonatomic, assign) IBOutlet UIButton* toggleSendingButton;
+
+@property (nonatomic, assign) IBOutlet UILabel* latLabel;
+@property (nonatomic, assign) IBOutlet UILabel* longLabel;
+@property (nonatomic, assign) IBOutlet UILabel* magHeadingLabel;
+@property (nonatomic, assign) IBOutlet UILabel* trueHeadingLabel;
+@property (nonatomic, assign) IBOutlet UISwitch* locationSwitch;
+@property (nonatomic, assign) IBOutlet UISwitch* headingSwitch;
+
+- (IBAction)toggleSendingTapped;
+- (IBAction)locationMonitoringSwitchTapped;
+- (IBAction)headingMonitoringSwitchTapped;
+- (IBAction)triggerSendingTapped;
+
+@end
+
 
 @implementation APAgentViewController
+
+@synthesize addressField;
+@synthesize portField;
+@synthesize toggleSendingButton;
+@synthesize latLabel;
+@synthesize longLabel;
+@synthesize magHeadingLabel;
+@synthesize trueHeadingLabel;
+@synthesize locationSwitch;
+@synthesize headingSwitch;
 
 
 - (id)initWithCoder:(NSCoder*)aDecoder
 {
 	if ( (self = [super initWithCoder:aDecoder]) )
 	{
-#if defined(LOCATION_HARDWARE_PRESENT)
-		locationManager = [[CLLocationManager alloc] init];
-#else
-		locationManager = [[APLocationManager alloc] init];
-		
-		APGPXDataSource* gpx = [[APGPXDataSource alloc] initWithURL:[NSURL fileURLWithPath:[[NSBundle mainBundle] pathForResource:@"ashland" ofType:@"gpx"]]];
+#if !LOCATION_HARDWARE_PRESENT
+		APGPXDataSource* gpx = [[[APGPXDataSource alloc] initWithURL:
+								 [NSURL fileURLWithPath:[[NSBundle mainBundle] pathForResource:@"ashland" ofType:@"gpx"]]] autorelease];
 		if ( [gpx cardinalityForDataSet:kAPGPXDataSetTrack] > 7 )
 		{
 			[gpx setActiveDataSet:kAPGPXDataSetTrack subsetIndex:7];
 		}
 
-		gpx.timeScale = 30.0;
+		gpx.timeScale = 1.0;
+		gpx.eventFrequency = 0.25;
 		
-		locationDataSource = gpx;
-		locationDataSource.locationDataDelegate = (APLocationManager*)locationManager;
+		locationDataSource = [gpx retain];
+		[APAstralProjection sharedInstance].locationDataSource = gpx;
+
+		// optionally, set up heading data source here
+		//...
+		//[APAstralProjection sharedInstance].headingDataSource = ...
+		
+		[APAstralProjection sharedInstance].delegate = self;
 #endif
 
+		locationManager = [[CLLocationManager alloc] init];
 		locationManager.delegate = self;
 		
 		udpConnection = [[APUDPConnection alloc] init];
@@ -66,13 +124,16 @@ static NSString* const kLastPortKey = @"LastPort";
 
 - (void)dealloc
 {
+#if !LOCATION_HARDWARE_PRESENT
 	[locationDataSource stopGeneratingLocationEvents];
 	[locationDataSource release];
 	
 	[headingDataSource stopGeneratingHeadingEvents];
 	[headingDataSource release];
+#endif
 	
 	[locationManager stopUpdatingLocation];
+	[locationManager stopUpdatingHeading];
 	[locationManager release];
 
 	[udpConnection release];
@@ -86,7 +147,7 @@ static NSString* const kLastPortKey = @"LastPort";
 	NSUserDefaults* prefs = [NSUserDefaults standardUserDefaults];
 	if ( [prefs objectForKey:kLastIPKey] )
 	{
-		ipAddress.text = [prefs objectForKey:kLastIPKey];
+		addressField.text = [prefs objectForKey:kLastIPKey];
 		[udpConnection setAddress:[prefs objectForKey:kLastIPKey]];
 	}
 	else
@@ -96,7 +157,7 @@ static NSString* const kLastPortKey = @"LastPort";
 	
 	if ( [prefs objectForKey:kLastPortKey] )
 	{
-		port.text = [[prefs objectForKey:kLastPortKey] stringValue];
+		portField.text = [[prefs objectForKey:kLastPortKey] stringValue];
 		[udpConnection setPort:[[prefs objectForKey:kLastPortKey] intValue]];
 	}
 	else
@@ -106,56 +167,64 @@ static NSString* const kLastPortKey = @"LastPort";
 }
 
 
-- (IBAction)toggleSending
+- (IBAction)toggleSendingTapped
 {
 	if ( !isSending )
 	{
-		[toggleSending setTitle:@"Stop sending" forState:UIControlStateNormal];
+		[toggleSendingButton setTitle:@"Stop sending" forState:UIControlStateNormal];
 		isSending = YES;
 	}
 	else
 	{
-		[toggleSending setTitle:@"Start sending" forState:UIControlStateNormal];
+		[toggleSendingButton setTitle:@"Start sending" forState:UIControlStateNormal];
 		isSending = NO;
 	}
 }
 
 
-- (IBAction)toggleHeadingMonitoring
+- (IBAction)headingMonitoringSwitchTapped
 {
-	if ( toggleHeading.on )
+	if ( headingSwitch.on )
 	{
 		[locationManager startUpdatingHeading];
+#if !LOCATION_HARDWARE_PRESENT
 		[headingDataSource startGeneratingHeadingEvents];
+#endif
 		isMonitoringHeading = YES;
 	}
 	else
 	{
+#if !LOCATION_HARDWARE_PRESENT
 		[headingDataSource stopGeneratingHeadingEvents];
+#endif
 		[locationManager stopUpdatingHeading];
 		isMonitoringHeading = NO;
 	}
 }
 
 
-- (IBAction)toggleLocationMonitoring
+- (IBAction)locationMonitoringSwitchTapped
 {
-	if ( toggleLocation.on )
+	if ( locationSwitch.on )
 	{
 		[locationManager startUpdatingLocation];
+#if !LOCATION_HARDWARE_PRESENT
 		[locationDataSource startGeneratingLocationEvents];
+#endif
 		isMonitoringLocation = YES;
 	}
 	else
 	{
+#if !LOCATION_HARDWARE_PRESENT
 		[locationDataSource stopGeneratingLocationEvents];
+#endif
 		[locationManager stopUpdatingLocation];
 		isMonitoringLocation = NO;
 	}
 }
 
 
-- (IBAction)triggerSending
+- (IBAction)triggerSendingTapped
 {
 	if ( lastMessage )
 	{
@@ -172,19 +241,19 @@ static NSString* const kLastPortKey = @"LastPort";
 {
 	NSUserDefaults* prefs = [NSUserDefaults standardUserDefaults];
 	
-	if ( aTextField == port )
+	if ( aTextField == portField )
 	{
-		NSScanner* scanner = [NSScanner scannerWithString:port.text];
+		NSScanner* scanner = [NSScanner scannerWithString:portField.text];
 		int value = 0;
 		[scanner scanInt:&value];
 		
 		[udpConnection setPort:value&0xffff];
 		[prefs setObject:[NSNumber numberWithInt:value&0xffff] forKey:kLastPortKey];
 	}
-	else if ( aTextField == ipAddress )
+	else if ( aTextField == addressField )
 	{
-		[udpConnection setAddress:ipAddress.text];
-		[prefs setObject:ipAddress.text forKey:kLastIPKey];
+		[udpConnection setAddress:addressField.text];
+		[prefs setObject:addressField.text forKey:kLastIPKey];
 	}
 
 	[prefs synchronize];
@@ -195,19 +264,19 @@ static NSString* const kLastPortKey = @"LastPort";
 {
 	NSUserDefaults* prefs = [NSUserDefaults standardUserDefaults];
 
-	if ( aTextField == port )
+	if ( aTextField == portField )
 	{
-		NSScanner* scanner = [NSScanner scannerWithString:port.text];
+		NSScanner* scanner = [NSScanner scannerWithString:portField.text];
 		int value = 0;
 		[scanner scanInt:&value];
 		
 		[udpConnection setPort:value&0xffff];
 		[prefs setObject:[NSNumber numberWithInt:value&0xffff] forKey:kLastPortKey];
 	}
-	else if ( aTextField == ipAddress )
+	else if ( aTextField == addressField )
 	{
-		[udpConnection setAddress:ipAddress.text];
-		[prefs setObject:ipAddress.text forKey:kLastIPKey];
+		[udpConnection setAddress:addressField.text];
+		[prefs setObject:addressField.text forKey:kLastIPKey];
 	}
 	
 	[prefs synchronize];
@@ -218,6 +287,24 @@ static NSString* const kLastPortKey = @"LastPort";
 }
 
 
+#if !LOCATION_HARDWARE_PRESENT
+
+#pragma mark - from APAstralProjectionDelegate:
+
+- (CLAuthorizationStatus)astralAuthorizationStatus
+{
+	return kCLAuthorizationStatusAuthorized;
+}
+
+
+- (BOOL)astralLocationServicesEnabled
+{
+	return YES;
+}
+
+#endif
+
+
 #pragma mark -
 #pragma mark from CLLocationManagerDelegate:
 
@@ -225,8 +312,8 @@ static NSString* const kLastPortKey = @"LastPort";
 	didUpdateToLocation:(CLLocation*)aNewLocation
 		   fromLocation:(CLLocation*)aOldLocation
 {
-	latitude.text = [NSString stringWithFormat:@"%3.5f",aNewLocation.coordinate.latitude];
-	longitude.text = [NSString stringWithFormat:@"%3.5f",aNewLocation.coordinate.longitude];
+	latLabel.text = [NSString stringWithFormat:@"%3.5f",aNewLocation.coordinate.latitude];
+	longLabel.text = [NSString stringWithFormat:@"%3.5f",aNewLocation.coordinate.longitude];
 	
 	if ( isSending )
 	{

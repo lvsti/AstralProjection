@@ -11,6 +11,7 @@
 #import <MapKit/MapKit.h>
 #import "APAstralProjection.h"
 #import "APGPXDataSource.h"
+#import "APAgentDataSource.h"
 
 
 @interface ViewController () <APAstralProjectionDelegate, CLLocationManagerDelegate>
@@ -49,16 +50,26 @@
 	self = [super initWithNibName:nibNameOrNil bundle:nibBundleOrNil];
 	if ( self != nil )
 	{
+		/*/
 		APGPXDataSource* gpx = [[[APGPXDataSource alloc] initWithURL:
 								 [NSURL fileURLWithPath:[[NSBundle mainBundle] pathForResource:@"ashland.gpx" ofType:nil]]] autorelease];
 		[gpx setActiveDataSet:kAPGPXDataSetTrack subsetIndex:7];
 		gpx.timeScale = 1;
 		gpx.eventFrequency = 0.25;
 		gpx.autorepeat = YES;
-		
+
 		locationDataSource = [gpx retain];
-		[APAstralProjection sharedInstance].delegate = self;
 		[APAstralProjection sharedInstance].locationDataSource = gpx;
+
+		/*/
+		
+		APAgentDataSource* agent = [[[APAgentDataSource alloc] initWithUdpPort:0x1234] autorelease];
+		locationDataSource = [agent retain];
+		[APAstralProjection sharedInstance].locationDataSource = agent;
+		
+		//*/
+
+		[APAstralProjection sharedInstance].delegate = self;
 		
 		locMgr = [[CLLocationManager alloc] init];
 		locMgr.delegate = self;
@@ -107,7 +118,7 @@
 	}
 	else
 	{
-		[updateButton setTitle:@"Restart datasource" forState:UIControlStateNormal];
+		[datasourceButton setTitle:@"Restart datasource" forState:UIControlStateNormal];
 		[[APAstralProjection sharedInstance].locationDataSource stopGeneratingLocationEvents];
 	}
 	
