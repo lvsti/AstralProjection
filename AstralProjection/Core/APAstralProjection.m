@@ -33,6 +33,9 @@ static NSString* const kCallbackThreadKey = @"thread";
 - (void)startUpdatingHeadingForManager:(CLLocationManager*)aManager;
 - (void)stopUpdatingHeadingForManager:(CLLocationManager*)aManager;
 
+- (CLLocation*)lastRegisteredLocationForManager:(CLLocationManager*)aManager;
+- (CLLocation*)lastRegisteredHeadingForManager:(CLLocationManager*)aManager;
+
 @end
 
 static APAstralProjection* apSharedInstance = nil;
@@ -156,6 +159,18 @@ static APMethodSwizzle swizzledClassMethods[] =
 - (void)stopUpdatingHeading
 {
 	[apSharedInstance stopUpdatingHeadingForManager:self];
+}
+
+
+- (CLLocation*)location
+{
+	return [apSharedInstance lastRegisteredLocationForManager:self];
+}
+
+
+- (CLLocation*)heading
+{
+	return [apSharedInstance lastRegisteredHeadingForManager:self];
 }
 
 
@@ -301,6 +316,20 @@ static APMethodSwizzle swizzledClassMethods[] =
 	{
 		[activeHds release];
 	}
+}
+
+
+- (CLLocation*)lastRegisteredLocationForManager:(CLLocationManager*)aManager
+{
+	NSDictionary* record = [locationListeners objectForKey:[NSValue valueWithNonretainedObject:aManager]];
+	return [record objectForKey:kLastRegisteredValueKey];
+}
+
+
+- (CLLocation*)lastRegisteredHeadingForManager:(CLLocationManager*)aManager
+{
+	NSDictionary* record = [headingListeners objectForKey:[NSValue valueWithNonretainedObject:aManager]];
+	return [record objectForKey:kLastRegisteredValueKey];
 }
 
 
