@@ -59,31 +59,31 @@ static IMP CLLocationManager_deferredLocationUpdatesAvailable = NULL;
 
 CLAuthorizationStatus AP_CLLocationManager_authorizationStatus(id aSelf, SEL aCmd)
 {
-	return [apDelegate respondsToSelector:@selector(astralAuthorizationStatus)]? [apDelegate astralAuthorizationStatus]: (CLAuthorizationStatus)CLLocationManager_authorizationStatus(aSelf,aCmd);
+	return [apDelegate respondsToSelector:@selector(astralAuthorizationStatus)]? [apDelegate astralAuthorizationStatus]: ((CLAuthorizationStatus(*)(id,SEL))CLLocationManager_authorizationStatus)(aSelf,aCmd);
 }
 
 
 BOOL AP_CLLocationManager_locationServicesEnabled(id aSelf, SEL aCmd)
 {
-	return [apDelegate respondsToSelector:@selector(astralLocationServicesEnabled)]? [apDelegate astralLocationServicesEnabled]: (BOOL)CLLocationManager_locationServicesEnabled(aSelf,aCmd);
+	return [apDelegate respondsToSelector:@selector(astralLocationServicesEnabled)]? [apDelegate astralLocationServicesEnabled]: ((BOOL(*)(id,SEL))CLLocationManager_locationServicesEnabled)(aSelf,aCmd);
 }
 
 
 BOOL AP_CLLocationManager_significantLocationChangeMonitoringAvailable(id aSelf, SEL aCmd)
 {
-	return [apDelegate respondsToSelector:@selector(astralSignificantLocationChangeMonitoringAvailable)]? [apDelegate astralSignificantLocationChangeMonitoringAvailable]: (BOOL)CLLocationManager_significantLocationChangeMonitoringAvailable(aSelf,aCmd);
+	return [apDelegate respondsToSelector:@selector(astralSignificantLocationChangeMonitoringAvailable)]? [apDelegate astralSignificantLocationChangeMonitoringAvailable]: ((BOOL(*)(id,SEL))CLLocationManager_significantLocationChangeMonitoringAvailable)(aSelf,aCmd);
 }
 
 
 BOOL AP_CLLocationManager_headingAvailable(id aSelf, SEL aCmd)
 {
-	return [apDelegate respondsToSelector:@selector(astralHeadingAvailable)]? [apDelegate astralHeadingAvailable]: (BOOL)CLLocationManager_headingAvailable(aSelf,aCmd);
+	return [apDelegate respondsToSelector:@selector(astralHeadingAvailable)]? [apDelegate astralHeadingAvailable]: ((BOOL(*)(id,SEL))CLLocationManager_headingAvailable)(aSelf,aCmd);
 }
 
 
 BOOL AP_CLLocationManager_regionMonitoringAvailable(id aSelf, SEL aCmd)
 {
-	return [apDelegate respondsToSelector:@selector(astralRegionMonitoringAvailable)]? [apDelegate astralRegionMonitoringAvailable]: (BOOL)CLLocationManager_regionMonitoringAvailable(aSelf,aCmd);
+	return [apDelegate respondsToSelector:@selector(astralRegionMonitoringAvailable)]? [apDelegate astralRegionMonitoringAvailable]: ((BOOL(*)(id,SEL))CLLocationManager_regionMonitoringAvailable)(aSelf,aCmd);
 }
 
 
@@ -91,7 +91,7 @@ BOOL AP_CLLocationManager_regionMonitoringAvailable(id aSelf, SEL aCmd)
 // this method is only available on iOS
 BOOL AP_CLLocationManager_deferredLocationUpdatesAvailable(id aSelf, SEL aCmd)
 {
-	return [apDelegate respondsToSelector:@selector(astralDeferredLocationUpdatesAvailable)]? [apDelegate astralDeferredLocationUpdatesAvailable]: (BOOL)CLLocationManager_deferredLocationUpdatesAvailable(aSelf,aCmd);
+	return [apDelegate respondsToSelector:@selector(astralDeferredLocationUpdatesAvailable)]? [apDelegate astralDeferredLocationUpdatesAvailable]: ((BOOL(*)(id,SEL))CLLocationManager_deferredLocationUpdatesAvailable)(aSelf,aCmd);
 }
 #endif
 
