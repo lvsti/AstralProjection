@@ -376,6 +376,7 @@ static const NSInteger kThreadStopped = 2;
 															 x:[[aMessage objectForKey:@"x"] doubleValue]
 															 y:[[aMessage objectForKey:@"y"] doubleValue]
 															 z:[[aMessage objectForKey:@"z"] doubleValue]];
+	[heading retain];
 	
 	[headingDataDelegate headingDataSource:self
 						didUpdateToHeading:heading];

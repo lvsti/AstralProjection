@@ -508,6 +508,7 @@ typedef enum
 														   course:course
 															speed:speed
 														timestamp:tempLocation.timestamp];
+	[tempLocation release];
 	
 	return [location autorelease];
 }
@@ -574,7 +575,6 @@ typedef enum
 						
 						[threadLock lock];
 						[threadLock unlockWithCondition:kThreadStopping];
-						[now release];
 					}
 					else
 					{
@@ -583,7 +583,9 @@ typedef enum
 						[start release];
 						start = [[NSDate date] retain];
 					}
-					
+
+					[now release];
+
 					[threadLock lock];
 					continue;
 				}
