@@ -1,5 +1,5 @@
 //
-//  EXT_CLHeading.h
+//  APHeading.h
 //  AstralProjection
 //
 //  Created by Lkxf on 2011.02.03..
@@ -18,6 +18,8 @@
 typedef double CLHeadingComponentValue;
 extern const CLLocationDegrees kCLHeadingFilterNone;
 
+@compatibility_alias CLHeading APHeading;
+
 #endif
 
 
@@ -31,14 +33,13 @@ extern const CLLocationDegrees kCLHeadingFilterNone;
 @property(readonly, nonatomic) CLHeadingComponentValue z;
 @property(readonly, nonatomic, retain) NSDate* timestamp;
 
-- (NSString*)description;
+- (APHeading*)initWithMagneticHeading:(CLLocationDirection)aMagneticHeading
+						  trueHeading:(CLLocationDirection)aTrueHeading
+							 accuracy:(CLLocationDirection)aAccuracy
+									x:(CLHeadingComponentValue)aX
+									y:(CLHeadingComponentValue)aY
+									z:(CLHeadingComponentValue)aZ
+							timestamp:(NSDate*)aTimestamp;
 
 @end
-
-
-#if !TARGET_OS_IPHONE && __MAC_OS_X_VERSION_MAX_ALLOWED <= __MAC_10_6
-
-@compatibility_alias CLHeading APHeading;
-
-#endif
 

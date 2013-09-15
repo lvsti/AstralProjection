@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		E85B4BC817E6387E003E9BE2 /* APHeading.m in Sources */ = {isa = PBXBuildFile; fileRef = E85B4BC517E6387E003E9BE2 /* APHeading.m */; };
+		E85B4BC917E6387E003E9BE2 /* APLocation.m in Sources */ = {isa = PBXBuildFile; fileRef = E85B4BC717E6387E003E9BE2 /* APLocation.m */; };
 		E85CBA18179837BF00AE58A3 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E85CBA17179837BF00AE58A3 /* Cocoa.framework */; };
 		E85CBA22179837BF00AE58A3 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = E85CBA20179837BF00AE58A3 /* InfoPlist.strings */; };
 		E85CBA24179837BF00AE58A3 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = E85CBA23179837BF00AE58A3 /* main.m */; };
@@ -17,10 +19,6 @@
 		E85CBA56179837EE00AE58A3 /* APGPXParser.m in Sources */ = {isa = PBXBuildFile; fileRef = E85CBA4B179837EE00AE58A3 /* APGPXParser.m */; };
 		E85CBA5A179837FA00AE58A3 /* CoreLocation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E85CBA59179837FA00AE58A3 /* CoreLocation.framework */; };
 		E85CBA5E17984C1B00AE58A3 /* APAstralProjection.m in Sources */ = {isa = PBXBuildFile; fileRef = E85CBA5D17984C1B00AE58A3 /* APAstralProjection.m */; };
-		E8AAE4551799CDC6006C41CD /* CLHeading+AstralProjection.m in Sources */ = {isa = PBXBuildFile; fileRef = E8AAE44E1799CDC6006C41CD /* CLHeading+AstralProjection.m */; };
-		E8AAE4561799CDC6006C41CD /* CLLocation+AstralProjection.m in Sources */ = {isa = PBXBuildFile; fileRef = E8AAE4501799CDC6006C41CD /* CLLocation+AstralProjection.m */; };
-		E8AAE4571799CDC6006C41CD /* EXT_CLHeading.m in Sources */ = {isa = PBXBuildFile; fileRef = E8AAE4521799CDC6006C41CD /* EXT_CLHeading.m */; };
-		E8AAE4581799CDC6006C41CD /* EXT_CLLocation.m in Sources */ = {isa = PBXBuildFile; fileRef = E8AAE4541799CDC6006C41CD /* EXT_CLLocation.m */; };
 		E8AAE45C1799CDE1006C41CD /* APAgentDataSource.m in Sources */ = {isa = PBXBuildFile; fileRef = E8AAE45B1799CDE1006C41CD /* APAgentDataSource.m */; };
 		E8AAE46B1799CDF5006C41CD /* NSObject+SBJSON.m in Sources */ = {isa = PBXBuildFile; fileRef = E8AAE4601799CDF5006C41CD /* NSObject+SBJSON.m */; };
 		E8AAE46C1799CDF5006C41CD /* NSString+SBJSON.m in Sources */ = {isa = PBXBuildFile; fileRef = E8AAE4621799CDF5006C41CD /* NSString+SBJSON.m */; };
@@ -31,6 +29,10 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		E85B4BC417E6387E003E9BE2 /* APHeading.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = APHeading.h; sourceTree = "<group>"; };
+		E85B4BC517E6387E003E9BE2 /* APHeading.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = APHeading.m; sourceTree = "<group>"; };
+		E85B4BC617E6387E003E9BE2 /* APLocation.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = APLocation.h; sourceTree = "<group>"; };
+		E85B4BC717E6387E003E9BE2 /* APLocation.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = APLocation.m; sourceTree = "<group>"; };
 		E85CBA14179837BF00AE58A3 /* APDesktopHost.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = APDesktopHost.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		E85CBA17179837BF00AE58A3 /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = System/Library/Frameworks/Cocoa.framework; sourceTree = SDKROOT; };
 		E85CBA1A179837BF00AE58A3 /* AppKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppKit.framework; path = System/Library/Frameworks/AppKit.framework; sourceTree = SDKROOT; };
@@ -55,14 +57,6 @@
 		E85CBA59179837FA00AE58A3 /* CoreLocation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreLocation.framework; path = System/Library/Frameworks/CoreLocation.framework; sourceTree = SDKROOT; };
 		E85CBA5C17984C1B00AE58A3 /* APAstralProjection.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = APAstralProjection.h; sourceTree = "<group>"; };
 		E85CBA5D17984C1B00AE58A3 /* APAstralProjection.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = APAstralProjection.m; sourceTree = "<group>"; };
-		E8AAE44D1799CDC6006C41CD /* CLHeading+AstralProjection.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "CLHeading+AstralProjection.h"; sourceTree = "<group>"; };
-		E8AAE44E1799CDC6006C41CD /* CLHeading+AstralProjection.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "CLHeading+AstralProjection.m"; sourceTree = "<group>"; };
-		E8AAE44F1799CDC6006C41CD /* CLLocation+AstralProjection.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "CLLocation+AstralProjection.h"; sourceTree = "<group>"; };
-		E8AAE4501799CDC6006C41CD /* CLLocation+AstralProjection.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "CLLocation+AstralProjection.m"; sourceTree = "<group>"; };
-		E8AAE4511799CDC6006C41CD /* EXT_CLHeading.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = EXT_CLHeading.h; sourceTree = "<group>"; };
-		E8AAE4521799CDC6006C41CD /* EXT_CLHeading.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = EXT_CLHeading.m; sourceTree = "<group>"; };
-		E8AAE4531799CDC6006C41CD /* EXT_CLLocation.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = EXT_CLLocation.h; sourceTree = "<group>"; };
-		E8AAE4541799CDC6006C41CD /* EXT_CLLocation.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = EXT_CLLocation.m; sourceTree = "<group>"; };
 		E8AAE45A1799CDE1006C41CD /* APAgentDataSource.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = APAgentDataSource.h; sourceTree = "<group>"; };
 		E8AAE45B1799CDE1006C41CD /* APAgentDataSource.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = APAgentDataSource.m; sourceTree = "<group>"; };
 		E8AAE45E1799CDF5006C41CD /* JSON.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = JSON.h; sourceTree = "<group>"; };
@@ -177,20 +171,16 @@
 		E85CBA38179837EE00AE58A3 /* Core */ = {
 			isa = PBXGroup;
 			children = (
-				E8AAE44D1799CDC6006C41CD /* CLHeading+AstralProjection.h */,
-				E8AAE44E1799CDC6006C41CD /* CLHeading+AstralProjection.m */,
-				E8AAE44F1799CDC6006C41CD /* CLLocation+AstralProjection.h */,
-				E8AAE4501799CDC6006C41CD /* CLLocation+AstralProjection.m */,
-				E8AAE4511799CDC6006C41CD /* EXT_CLHeading.h */,
-				E8AAE4521799CDC6006C41CD /* EXT_CLHeading.m */,
-				E8AAE4531799CDC6006C41CD /* EXT_CLLocation.h */,
-				E8AAE4541799CDC6006C41CD /* EXT_CLLocation.m */,
-				E85CBA3B179837EE00AE58A3 /* APHeadingDataDelegate.h */,
-				E85CBA3C179837EE00AE58A3 /* APHeadingDataSource.h */,
-				E85CBA3F179837EE00AE58A3 /* APLocationDataDelegate.h */,
-				E85CBA40179837EE00AE58A3 /* APLocationDataSource.h */,
 				E85CBA5C17984C1B00AE58A3 /* APAstralProjection.h */,
 				E85CBA5D17984C1B00AE58A3 /* APAstralProjection.m */,
+				E85B4BC417E6387E003E9BE2 /* APHeading.h */,
+				E85B4BC517E6387E003E9BE2 /* APHeading.m */,
+				E85CBA3B179837EE00AE58A3 /* APHeadingDataDelegate.h */,
+				E85CBA3C179837EE00AE58A3 /* APHeadingDataSource.h */,
+				E85B4BC617E6387E003E9BE2 /* APLocation.h */,
+				E85B4BC717E6387E003E9BE2 /* APLocation.m */,
+				E85CBA3F179837EE00AE58A3 /* APLocationDataDelegate.h */,
+				E85CBA40179837EE00AE58A3 /* APLocationDataSource.h */,
 			);
 			path = Core;
 			sourceTree = "<group>";
@@ -314,10 +304,6 @@
 				E85CBA55179837EE00AE58A3 /* APGPXDataSource.m in Sources */,
 				E85CBA56179837EE00AE58A3 /* APGPXParser.m in Sources */,
 				E85CBA5E17984C1B00AE58A3 /* APAstralProjection.m in Sources */,
-				E8AAE4551799CDC6006C41CD /* CLHeading+AstralProjection.m in Sources */,
-				E8AAE4561799CDC6006C41CD /* CLLocation+AstralProjection.m in Sources */,
-				E8AAE4571799CDC6006C41CD /* EXT_CLHeading.m in Sources */,
-				E8AAE4581799CDC6006C41CD /* EXT_CLLocation.m in Sources */,
 				E8AAE45C1799CDE1006C41CD /* APAgentDataSource.m in Sources */,
 				E8AAE46B1799CDF5006C41CD /* NSObject+SBJSON.m in Sources */,
 				E8AAE46C1799CDF5006C41CD /* NSString+SBJSON.m in Sources */,
@@ -325,6 +311,8 @@
 				E8AAE46E1799CDF5006C41CD /* SBJsonBase.m in Sources */,
 				E8AAE46F1799CDF5006C41CD /* SBJsonParser.m in Sources */,
 				E8AAE4701799CDF5006C41CD /* SBJsonWriter.m in Sources */,
+				E85B4BC817E6387E003E9BE2 /* APHeading.m in Sources */,
+				E85B4BC917E6387E003E9BE2 /* APLocation.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

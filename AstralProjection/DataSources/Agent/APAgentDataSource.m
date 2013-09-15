@@ -15,9 +15,8 @@
 #import "JSON.h"
 #import "APLocationDataDelegate.h"
 #import "APHeadingDataDelegate.h"
-#import "CLHeading+AstralProjection.h"
-#import "EXT_CLHeading.h"
 #import "APLocation.h"
+#import "APHeading.h"
 
 
 static NSString* const kDateFormat = @"yyyy-MM-dd'T'HH:mm:ss'Z'";
@@ -385,14 +384,13 @@ static const NSInteger kThreadStopped = 2;
 // -----------------------------------------------------------------------------
 - (void)processHeadingUpdateMessage:(NSDictionary*)aMessage
 {
-	CLHeading* heading = [CLHeading headingWithMagneticHeading:[[aMessage objectForKey:@"mag"] doubleValue]
-												   trueHeading:[[aMessage objectForKey:@"true"] doubleValue]
-													  accuracy:[[aMessage objectForKey:@"acc"] doubleValue]
-													 timestamp:[dateFmt dateFromString:[aMessage objectForKey:@"time"]]
-															 x:[[aMessage objectForKey:@"x"] doubleValue]
-															 y:[[aMessage objectForKey:@"y"] doubleValue]
-															 z:[[aMessage objectForKey:@"z"] doubleValue]];
-	[heading retain];
+	APHeading* heading = [[APHeading alloc] initWithMagneticHeading:[[aMessage objectForKey:@"mag"] doubleValue]
+														trueHeading:[[aMessage objectForKey:@"true"] doubleValue]
+														   accuracy:[[aMessage objectForKey:@"acc"] doubleValue]
+																  x:[[aMessage objectForKey:@"x"] doubleValue]
+																  y:[[aMessage objectForKey:@"y"] doubleValue]
+																  z:[[aMessage objectForKey:@"z"] doubleValue]
+														  timestamp:[dateFmt dateFromString:[aMessage objectForKey:@"time"]]];
 	
 	[headingDataDelegate headingDataSource:self
 						didUpdateToHeading:heading];

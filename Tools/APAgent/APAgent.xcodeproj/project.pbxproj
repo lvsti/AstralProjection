@@ -26,11 +26,9 @@
 		E80476F71242C8C3001B2346 /* Icon.png in Resources */ = {isa = PBXBuildFile; fileRef = E80476F51242C8C3001B2346 /* Icon.png */; };
 		E80476F81242C8C3001B2346 /* Icon@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = E80476F61242C8C3001B2346 /* Icon@2x.png */; };
 		E84AC6091796B48C000CCF9C /* Default-568h@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = E84AC6081796B48C000CCF9C /* Default-568h@2x.png */; };
+		E85B4BCE17E6391C003E9BE2 /* APHeading.m in Sources */ = {isa = PBXBuildFile; fileRef = E85B4BCB17E6391C003E9BE2 /* APHeading.m */; };
+		E85B4BCF17E6391C003E9BE2 /* APLocation.m in Sources */ = {isa = PBXBuildFile; fileRef = E85B4BCD17E6391C003E9BE2 /* APLocation.m */; };
 		E8E27A75179A820B00005413 /* APAstralProjection.m in Sources */ = {isa = PBXBuildFile; fileRef = E8E27A5F179A820B00005413 /* APAstralProjection.m */; };
-		E8E27A76179A820B00005413 /* CLHeading+AstralProjection.m in Sources */ = {isa = PBXBuildFile; fileRef = E8E27A65179A820B00005413 /* CLHeading+AstralProjection.m */; };
-		E8E27A77179A820B00005413 /* CLLocation+AstralProjection.m in Sources */ = {isa = PBXBuildFile; fileRef = E8E27A67179A820B00005413 /* CLLocation+AstralProjection.m */; };
-		E8E27A78179A820B00005413 /* EXT_CLHeading.m in Sources */ = {isa = PBXBuildFile; fileRef = E8E27A69179A820B00005413 /* EXT_CLHeading.m */; };
-		E8E27A79179A820B00005413 /* EXT_CLLocation.m in Sources */ = {isa = PBXBuildFile; fileRef = E8E27A6B179A820B00005413 /* EXT_CLLocation.m */; };
 		E8E27A7B179A820B00005413 /* APGPXDataSource.m in Sources */ = {isa = PBXBuildFile; fileRef = E8E27A72179A820B00005413 /* APGPXDataSource.m */; };
 		E8E27A7C179A820B00005413 /* APGPXParser.m in Sources */ = {isa = PBXBuildFile; fileRef = E8E27A74179A820B00005413 /* APGPXParser.m */; };
 		E8E27A7E179A82EF00005413 /* ashland.gpx in Resources */ = {isa = PBXBuildFile; fileRef = E8E27A7D179A82EF00005413 /* ashland.gpx */; };
@@ -69,20 +67,16 @@
 		E80476F51242C8C3001B2346 /* Icon.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = Icon.png; sourceTree = "<group>"; };
 		E80476F61242C8C3001B2346 /* Icon@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Icon@2x.png"; sourceTree = "<group>"; };
 		E84AC6081796B48C000CCF9C /* Default-568h@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Default-568h@2x.png"; sourceTree = "<group>"; };
+		E85B4BCA17E6391C003E9BE2 /* APHeading.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = APHeading.h; sourceTree = "<group>"; };
+		E85B4BCB17E6391C003E9BE2 /* APHeading.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = APHeading.m; sourceTree = "<group>"; };
+		E85B4BCC17E6391C003E9BE2 /* APLocation.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = APLocation.h; sourceTree = "<group>"; };
+		E85B4BCD17E6391C003E9BE2 /* APLocation.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = APLocation.m; sourceTree = "<group>"; };
 		E8E27A5E179A820B00005413 /* APAstralProjection.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = APAstralProjection.h; sourceTree = "<group>"; };
 		E8E27A5F179A820B00005413 /* APAstralProjection.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = APAstralProjection.m; sourceTree = "<group>"; };
 		E8E27A60179A820B00005413 /* APHeadingDataDelegate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = APHeadingDataDelegate.h; sourceTree = "<group>"; };
 		E8E27A61179A820B00005413 /* APHeadingDataSource.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = APHeadingDataSource.h; sourceTree = "<group>"; };
 		E8E27A62179A820B00005413 /* APLocationDataDelegate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = APLocationDataDelegate.h; sourceTree = "<group>"; };
 		E8E27A63179A820B00005413 /* APLocationDataSource.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = APLocationDataSource.h; sourceTree = "<group>"; };
-		E8E27A64179A820B00005413 /* CLHeading+AstralProjection.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "CLHeading+AstralProjection.h"; sourceTree = "<group>"; };
-		E8E27A65179A820B00005413 /* CLHeading+AstralProjection.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "CLHeading+AstralProjection.m"; sourceTree = "<group>"; };
-		E8E27A66179A820B00005413 /* CLLocation+AstralProjection.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "CLLocation+AstralProjection.h"; sourceTree = "<group>"; };
-		E8E27A67179A820B00005413 /* CLLocation+AstralProjection.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "CLLocation+AstralProjection.m"; sourceTree = "<group>"; };
-		E8E27A68179A820B00005413 /* EXT_CLHeading.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = EXT_CLHeading.h; sourceTree = "<group>"; };
-		E8E27A69179A820B00005413 /* EXT_CLHeading.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = EXT_CLHeading.m; sourceTree = "<group>"; };
-		E8E27A6A179A820B00005413 /* EXT_CLLocation.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = EXT_CLLocation.h; sourceTree = "<group>"; };
-		E8E27A6B179A820B00005413 /* EXT_CLLocation.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = EXT_CLLocation.m; sourceTree = "<group>"; };
 		E8E27A71179A820B00005413 /* APGPXDataSource.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = APGPXDataSource.h; sourceTree = "<group>"; };
 		E8E27A72179A820B00005413 /* APGPXDataSource.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = APGPXDataSource.m; sourceTree = "<group>"; };
 		E8E27A73179A820B00005413 /* APGPXParser.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = APGPXParser.h; sourceTree = "<group>"; };
@@ -210,18 +204,14 @@
 			children = (
 				E8E27A5E179A820B00005413 /* APAstralProjection.h */,
 				E8E27A5F179A820B00005413 /* APAstralProjection.m */,
+				E85B4BCA17E6391C003E9BE2 /* APHeading.h */,
+				E85B4BCB17E6391C003E9BE2 /* APHeading.m */,
 				E8E27A60179A820B00005413 /* APHeadingDataDelegate.h */,
 				E8E27A61179A820B00005413 /* APHeadingDataSource.h */,
+				E85B4BCC17E6391C003E9BE2 /* APLocation.h */,
+				E85B4BCD17E6391C003E9BE2 /* APLocation.m */,
 				E8E27A62179A820B00005413 /* APLocationDataDelegate.h */,
 				E8E27A63179A820B00005413 /* APLocationDataSource.h */,
-				E8E27A64179A820B00005413 /* CLHeading+AstralProjection.h */,
-				E8E27A65179A820B00005413 /* CLHeading+AstralProjection.m */,
-				E8E27A66179A820B00005413 /* CLLocation+AstralProjection.h */,
-				E8E27A67179A820B00005413 /* CLLocation+AstralProjection.m */,
-				E8E27A68179A820B00005413 /* EXT_CLHeading.h */,
-				E8E27A69179A820B00005413 /* EXT_CLHeading.m */,
-				E8E27A6A179A820B00005413 /* EXT_CLLocation.h */,
-				E8E27A6B179A820B00005413 /* EXT_CLLocation.m */,
 			);
 			path = Core;
 			sourceTree = "<group>";
@@ -325,12 +315,10 @@
 				E804769D1242BB6F001B2346 /* SBJsonParser.m in Sources */,
 				E804769E1242BB6F001B2346 /* SBJsonWriter.m in Sources */,
 				E8E27A75179A820B00005413 /* APAstralProjection.m in Sources */,
-				E8E27A76179A820B00005413 /* CLHeading+AstralProjection.m in Sources */,
-				E8E27A77179A820B00005413 /* CLLocation+AstralProjection.m in Sources */,
-				E8E27A78179A820B00005413 /* EXT_CLHeading.m in Sources */,
-				E8E27A79179A820B00005413 /* EXT_CLLocation.m in Sources */,
 				E8E27A7B179A820B00005413 /* APGPXDataSource.m in Sources */,
 				E8E27A7C179A820B00005413 /* APGPXParser.m in Sources */,
+				E85B4BCE17E6391C003E9BE2 /* APHeading.m in Sources */,
+				E85B4BCF17E6391C003E9BE2 /* APLocation.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

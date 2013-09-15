@@ -33,8 +33,8 @@ static NSString* const kCallbackThreadKey = @"thread";
 - (void)startUpdatingHeadingForManager:(CLLocationManager*)aManager;
 - (void)stopUpdatingHeadingForManager:(CLLocationManager*)aManager;
 
-- (CLLocation*)lastRegisteredHeadingForManager:(CLLocationManager*)aManager;
 - (APLocation*)lastRegisteredLocationForManager:(CLLocationManager*)aManager;
+- (APHeading*)lastRegisteredHeadingForManager:(CLLocationManager*)aManager;
 
 @end
 
@@ -168,9 +168,9 @@ static APMethodSwizzle swizzledClassMethods[] =
 }
 
 
-- (CLLocation*)heading
+- (CLHeading*)heading
 {
-	return [apSharedInstance lastRegisteredHeadingForManager:self];
+	return (CLHeading*)[apSharedInstance lastRegisteredHeadingForManager:self];
 }
 
 
@@ -326,7 +326,7 @@ static APMethodSwizzle swizzledClassMethods[] =
 }
 
 
-- (CLLocation*)lastRegisteredHeadingForManager:(CLLocationManager*)aManager
+- (APHeading*)lastRegisteredHeadingForManager:(CLLocationManager*)aManager
 {
 	NSDictionary* record = [headingListeners objectForKey:[NSValue valueWithNonretainedObject:aManager]];
 	return [record objectForKey:kLastRegisteredValueKey];
@@ -457,20 +457,20 @@ static APMethodSwizzle swizzledClassMethods[] =
 // APAstralProjection::headingDataSource:didUpdateToHeading:
 // -----------------------------------------------------------------------------
 - (void)headingDataSource:(id<APHeadingDataSource>)aDataSource
-	   didUpdateToHeading:(CLHeading*)aNewHeading
+	   didUpdateToHeading:(APHeading*)aNewHeading
 {
+#if TARGET_OS_IPHONE
 	if ( [CLLocationManager authorizationStatus] != kCLAuthorizationStatusAuthorized ||
 		 ![CLLocationManager locationServicesEnabled] ||
 		 ![CLLocationManager headingAvailable] )
 	{
 		return;
 	}
-	
-#if AP_HEADING_AVAILABLE
+
 	[headingListeners enumerateKeysAndObjectsUsingBlock:^(id key, NSMutableDictionary* obj, BOOL *stop) {
 		CLLocationManager* locMgr = [key nonretainedObjectValue];
 		
-		CLHeading* lastHeading = [obj objectForKey:kLastRegisteredValueKey];
+		APHeading* lastHeading = [obj objectForKey:kLastRegisteredValueKey];
 		if ( !lastHeading ||
 			 locMgr.headingFilter == kCLHeadingFilterNone ||
 			 ABS(aNewHeading.magneticHeading - lastHeading.magneticHeading) >= ABS(locMgr.headingFilter) )
