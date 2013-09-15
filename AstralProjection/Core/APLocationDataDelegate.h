@@ -6,16 +6,17 @@
 //
 
 #import <Foundation/Foundation.h>
+#import "APLocation.h"
 
-@class CLLocation;
+
 @protocol APLocationDataSource;
 
 
 @protocol APLocationDataDelegate <NSObject>
 
 - (void)locationDataSource:(id<APLocationDataSource>)aDataSource
-	   didUpdateToLocation:(CLLocation*)aNewLocation
-			  fromLocation:(CLLocation*)aOldLocation;
+	   didUpdateToLocation:(APLocation*)aNewLocation
+			  fromLocation:(APLocation*)aOldLocation;
 
 - (void)locationDataSource:(id<APLocationDataSource>)aDataSource
 	didFailToUpdateLocationWithError:(NSError*)aError;

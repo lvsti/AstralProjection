@@ -15,10 +15,9 @@
 #import "JSON.h"
 #import "APLocationDataDelegate.h"
 #import "APHeadingDataDelegate.h"
-#import "CLLocation+AstralProjection.h"
 #import "CLHeading+AstralProjection.h"
-#import "EXT_CLLocation.h"
 #import "EXT_CLHeading.h"
+#import "APLocation.h"
 
 
 static NSString* const kDateFormat = @"yyyy-MM-dd'T'HH:mm:ss'Z'";
@@ -322,24 +321,41 @@ static const NSInteger kThreadStopped = 2;
 									   [[oldLoc objectForKey:@"lon"] doubleValue]);
 	
 	
-	CLLocation* oldLocation = [[CLLocation alloc] initWithCoordinate:coord
+#if TARGET_OS_IPHONE || __MAC_OS_X_VERSION_MIN_REQUIRED > __MAC_10_6
+	APLocation* oldLocation = [[APLocation alloc] initWithCoordinate:coord
 															altitude:[[oldLoc objectForKey:@"alt"] doubleValue]
 												  horizontalAccuracy:[[oldLoc objectForKey:@"hacc"] doubleValue]
 													verticalAccuracy:[[oldLoc objectForKey:@"vacc"] doubleValue]
 															  course:[[oldLoc objectForKey:@"crs"] doubleValue]
 															   speed:[[oldLoc objectForKey:@"spd"] doubleValue]
 														   timestamp:[dateFmt dateFromString:[oldLoc objectForKey:@"time"]]];
+#else
+	APLocation* oldLocation = [[APLocation alloc] initWithCoordinate:coord
+															altitude:[[oldLoc objectForKey:@"alt"] doubleValue]
+												  horizontalAccuracy:[[oldLoc objectForKey:@"hacc"] doubleValue]
+													verticalAccuracy:[[oldLoc objectForKey:@"vacc"] doubleValue]
+														   timestamp:[dateFmt dateFromString:[oldLoc objectForKey:@"time"]]];
+#endif
 	
 	NSDictionary* newLoc = [aMessage objectForKey:@"new"];
 	coord = CLLocationCoordinate2DMake([[newLoc objectForKey:@"lat"] doubleValue],
 									   [[newLoc objectForKey:@"lon"] doubleValue]);
-	CLLocation* newLocation = [[CLLocation alloc] initWithCoordinate:coord
+
+#if TARGET_OS_IPHONE || __MAC_OS_X_VERSION_MIN_REQUIRED > __MAC_10_6
+	APLocation* newLocation = [[APLocation alloc] initWithCoordinate:coord
 															altitude:[[newLoc objectForKey:@"alt"] doubleValue]
 												  horizontalAccuracy:[[newLoc objectForKey:@"hacc"] doubleValue]
 													verticalAccuracy:[[newLoc objectForKey:@"vacc"] doubleValue]
 															  course:[[newLoc objectForKey:@"crs"] doubleValue]
 															   speed:[[newLoc objectForKey:@"spd"] doubleValue]
 														   timestamp:[dateFmt dateFromString:[newLoc objectForKey:@"time"]]];
+#else
+	APLocation* newLocation = [[APLocation alloc] initWithCoordinate:coord
+															altitude:[[newLoc objectForKey:@"alt"] doubleValue]
+												  horizontalAccuracy:[[newLoc objectForKey:@"hacc"] doubleValue]
+													verticalAccuracy:[[newLoc objectForKey:@"vacc"] doubleValue]
+														   timestamp:[dateFmt dateFromString:[newLoc objectForKey:@"time"]]];
+#endif
 	
 	[locationDataDelegate locationDataSource:self
 						 didUpdateToLocation:newLocation

@@ -11,8 +11,7 @@
 
 #import "APGPXParser.h"
 #import "APLocationDataDelegate.h"
-#import "CLLocation+AstralProjection.h"
-#import "EXT_CLLocation.h"
+#import "APLocation.h"
 
 
 static const CLLocationAccuracy kAPGPXDefaultHorizontalAccuracy = 10.0;
@@ -52,8 +51,9 @@ typedef enum
 - (void)getStartDate:(NSDate**)aStartDate andStopDate:(NSDate**)aStopDate;
 - (BOOL)timestamp:(NSDate*)aDate fallsInSegmentFromPoint:(NSDictionary**)aFromPoint
 		  toPoint:(NSDictionary**)aToPoint inPointSet:(NSArray*)aPoints;
-- (CLLocation*)locationForDate:(NSDate*)aDate withInterpolation:(APGPXInterpolationMethod)aMethod;
-- (CLLocation*)locationWithPointAtIndex:(NSUInteger)aIndex;
+- (APLocation*)locationForDate:(NSDate*)aDate
+			 withInterpolation:(APGPXInterpolationMethod)aMethod;
+- (APLocation*)locationWithPointAtIndex:(NSUInteger)aIndex;
 - (void)eventGeneratorLoop;
 
 @end
@@ -237,7 +237,7 @@ typedef enum
 // -----------------------------------------------------------------------------
 // APGPXDataSource::locationForDate:withInterpolation:
 // -----------------------------------------------------------------------------
-- (CLLocation*)locationForDate:(NSDate*)aDate withInterpolation:(APGPXInterpolationMethod)aMethod
+- (APLocation*)locationForDate:(NSDate*)aDate withInterpolation:(APGPXInterpolationMethod)aMethod
 {
 	NSDictionary* fromPoint = nil;
 	NSDictionary* toPoint = nil;
@@ -334,6 +334,7 @@ typedef enum
 		}
 	}
 	
+#if TARGET_OS_IPHONE || __MAC_OS_X_VERSION_MAX_ALLOWED > __MAC_10_6
 	if ( toPoint != fromPoint )
 	{
 		CLLocation* fromLocation = [[CLLocation alloc] initWithLatitude:[[fromPoint objectForKey:kGPXPointLatitude] doubleValue]
@@ -368,13 +369,23 @@ typedef enum
 		[fromLocation release];
 	}
 
-	CLLocation* location = [[CLLocation alloc] initWithCoordinate:CLLocationCoordinate2DMake(latitude,longitude)
+	APLocation* location = [[APLocation alloc] initWithCoordinate:CLLocationCoordinate2DMake(latitude,longitude)
 														 altitude:altitude
 											   horizontalAccuracy:kAPGPXDefaultHorizontalAccuracy
 												 verticalAccuracy:vAccuracy
 														   course:course
 															speed:speed
 														timestamp:aDate];
+#else
+	
+	APLocation* location = [[APLocation alloc] initWithCoordinate:CLLocationCoordinate2DMake(latitude,longitude)
+														 altitude:altitude
+											   horizontalAccuracy:kAPGPXDefaultHorizontalAccuracy
+												 verticalAccuracy:vAccuracy
+														timestamp:aDate];
+	
+#endif
+
 	
 	return [location autorelease];
 }
@@ -383,7 +394,7 @@ typedef enum
 // -----------------------------------------------------------------------------
 // APGPXDataSource::locationWithPointAtIndex:
 // -----------------------------------------------------------------------------
-- (CLLocation*)locationWithPointAtIndex:(NSUInteger)aIndex
+- (APLocation*)locationWithPointAtIndex:(NSUInteger)aIndex
 {
 	NSDictionary* point = nil;
 	NSDictionary* toPoint = nil;
@@ -501,7 +512,7 @@ typedef enum
 		[toLocation release];
 	}
 	
-	CLLocation* location = [[CLLocation alloc] initWithCoordinate:tempLocation.coordinate
+	APLocation* location = [[APLocation alloc] initWithCoordinate:tempLocation.coordinate
 														 altitude:tempLocation.altitude
 											   horizontalAccuracy:tempLocation.horizontalAccuracy
 												 verticalAccuracy:tempLocation.verticalAccuracy
@@ -529,8 +540,8 @@ typedef enum
 	NSDate* virtualStop = nil;
 	[self getStartDate:&virtualStart andStopDate:&virtualStop];
 
-	CLLocation* oldLocation = nil;
-	CLLocation* newLocation = nil;
+	APLocation* oldLocation = nil;
+	APLocation* newLocation = nil;
 	BOOL endPointPassed = NO;
 	NSUInteger pointIndex = 0;
 	double safeTimeScale = timeScale? timeScale: 1.0;
@@ -597,9 +608,10 @@ typedef enum
 			
 			[oldLocation release];
 			oldLocation = newLocation;
-			newLocation = [[self locationForDate:virtualNow
-							   withInterpolation:kAPGPXInterpolationMethodLinear] retain];
-			newLocation.timestamp = now;
+			APLocation* intLocation = [self locationForDate:virtualNow
+										  withInterpolation:kAPGPXInterpolationMethodLinear];
+			newLocation = [[APLocation alloc] initWithLocation:intLocation
+													 timestamp:now];
 //			NSLog(@"%@",newLocation);
 			
 			// notify the location manager
@@ -686,7 +698,10 @@ typedef enum
 				
 				// wrap the delegate call into another autorelease pool because nestedPool can already be released here
 				NSAutoreleasePool* delegatePool = [[NSAutoreleasePool alloc] init];
-				newLocation.timestamp = [NSDate date];
+				APLocation* tmpLocation = newLocation;
+				newLocation = [[APLocation alloc] initWithLocation:tmpLocation
+														 timestamp:[NSDate date]];
+				[tmpLocation release];
 
 				[locationDataDelegate locationDataSource:self
 									 didUpdateToLocation:newLocation

@@ -8,10 +8,10 @@
 
 #import "APAstralProjection.h"
 #import <objc/runtime.h>
-#import "APLocationDataSource.h"
+#import "APHeadingDataDelegate.h"
 #import "APHeadingDataSource.h"
 #import "APLocationDataDelegate.h"
-#import "APHeadingDataDelegate.h"
+#import "APLocationDataSource.h"
 
 
 static NSString* const kLastRegisteredValueKey = @"lastValue";
@@ -33,8 +33,8 @@ static NSString* const kCallbackThreadKey = @"thread";
 - (void)startUpdatingHeadingForManager:(CLLocationManager*)aManager;
 - (void)stopUpdatingHeadingForManager:(CLLocationManager*)aManager;
 
-- (CLLocation*)lastRegisteredLocationForManager:(CLLocationManager*)aManager;
 - (CLLocation*)lastRegisteredHeadingForManager:(CLLocationManager*)aManager;
+- (APLocation*)lastRegisteredLocationForManager:(CLLocationManager*)aManager;
 
 @end
 
@@ -164,7 +164,7 @@ static APMethodSwizzle swizzledClassMethods[] =
 
 - (CLLocation*)location
 {
-	return [apSharedInstance lastRegisteredLocationForManager:self];
+	return (CLLocation*)[apSharedInstance lastRegisteredLocationForManager:self];
 }
 
 
@@ -319,7 +319,7 @@ static APMethodSwizzle swizzledClassMethods[] =
 }
 
 
-- (CLLocation*)lastRegisteredLocationForManager:(CLLocationManager*)aManager
+- (APLocation*)lastRegisteredLocationForManager:(CLLocationManager*)aManager
 {
 	NSDictionary* record = [locationListeners objectForKey:[NSValue valueWithNonretainedObject:aManager]];
 	return [record objectForKey:kLastRegisteredValueKey];
@@ -340,8 +340,8 @@ static APMethodSwizzle swizzledClassMethods[] =
 // APAstralProjection::locationDataSource:didUpdateToLocation:fromLocation:
 // -----------------------------------------------------------------------------
 - (void)locationDataSource:(id<APLocationDataSource>)aDataSource
-	   didUpdateToLocation:(CLLocation*)aNewLocation
-			  fromLocation:(CLLocation*)aOldLocation
+	   didUpdateToLocation:(APLocation*)aNewLocation
+			  fromLocation:(APLocation*)aOldLocation
 {
 	if ( [CLLocationManager authorizationStatus] != kCLAuthorizationStatusAuthorized ||
 		 ![CLLocationManager locationServicesEnabled] )
@@ -352,7 +352,7 @@ static APMethodSwizzle swizzledClassMethods[] =
 	[locationListeners enumerateKeysAndObjectsUsingBlock:^(id key, NSMutableDictionary* obj, BOOL *stop) {
 		CLLocationManager* locMgr = [key nonretainedObjectValue];
 		
-		CLLocation* lastLocation = [obj objectForKey:kLastRegisteredValueKey];
+		APLocation* lastLocation = [obj objectForKey:kLastRegisteredValueKey];
 		if ( !lastLocation ||
 			 locMgr.distanceFilter == kCLDistanceFilterNone ||
 			 [aNewLocation distanceFromLocation:lastLocation] >= ABS(locMgr.distanceFilter) )
@@ -372,8 +372,8 @@ static APMethodSwizzle swizzledClassMethods[] =
 				{
 					// deprecated method
 					[locMgr.delegate locationManager:locMgr
-								 didUpdateToLocation:aNewLocation
-										fromLocation:aOldLocation];
+								 didUpdateToLocation:(CLLocation*)aNewLocation
+										fromLocation:(CLLocation*)aOldLocation];
 				}
 			}
 			else

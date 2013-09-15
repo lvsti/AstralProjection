@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		E8A9E56517E3BE2E002B3431 /* APLocation.m in Sources */ = {isa = PBXBuildFile; fileRef = E8A9E56317E3BE2E002B3431 /* APLocation.m */; };
 		E8AAE47E1799D021006C41CD /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E8AAE47D1799D021006C41CD /* UIKit.framework */; };
 		E8AAE4801799D021006C41CD /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E8AAE47F1799D021006C41CD /* Foundation.framework */; };
 		E8AAE4821799D021006C41CD /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E8AAE4811799D021006C41CD /* CoreGraphics.framework */; };
@@ -23,9 +24,7 @@
 		E8AAE4A71799D067006C41CD /* ashland.gpx in Resources */ = {isa = PBXBuildFile; fileRef = E8AAE4A61799D067006C41CD /* ashland.gpx */; };
 		E8AAE4C11799D076006C41CD /* APAstralProjection.m in Sources */ = {isa = PBXBuildFile; fileRef = E8AAE4AB1799D076006C41CD /* APAstralProjection.m */; };
 		E8AAE4C21799D076006C41CD /* CLHeading+AstralProjection.m in Sources */ = {isa = PBXBuildFile; fileRef = E8AAE4B11799D076006C41CD /* CLHeading+AstralProjection.m */; };
-		E8AAE4C31799D076006C41CD /* CLLocation+AstralProjection.m in Sources */ = {isa = PBXBuildFile; fileRef = E8AAE4B31799D076006C41CD /* CLLocation+AstralProjection.m */; };
 		E8AAE4C41799D076006C41CD /* EXT_CLHeading.m in Sources */ = {isa = PBXBuildFile; fileRef = E8AAE4B51799D076006C41CD /* EXT_CLHeading.m */; };
-		E8AAE4C51799D076006C41CD /* EXT_CLLocation.m in Sources */ = {isa = PBXBuildFile; fileRef = E8AAE4B71799D076006C41CD /* EXT_CLLocation.m */; };
 		E8AAE4C61799D076006C41CD /* APAgentDataSource.m in Sources */ = {isa = PBXBuildFile; fileRef = E8AAE4BB1799D076006C41CD /* APAgentDataSource.m */; };
 		E8AAE4C71799D076006C41CD /* APGPXDataSource.m in Sources */ = {isa = PBXBuildFile; fileRef = E8AAE4BE1799D076006C41CD /* APGPXDataSource.m */; };
 		E8AAE4C81799D076006C41CD /* APGPXParser.m in Sources */ = {isa = PBXBuildFile; fileRef = E8AAE4C01799D076006C41CD /* APGPXParser.m */; };
@@ -39,6 +38,8 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		E8A9E56217E3BE2E002B3431 /* APLocation.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = APLocation.h; sourceTree = "<group>"; };
+		E8A9E56317E3BE2E002B3431 /* APLocation.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = APLocation.m; sourceTree = "<group>"; };
 		E8AAE47A1799D021006C41CD /* APMobileHost.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = APMobileHost.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		E8AAE47D1799D021006C41CD /* UIKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UIKit.framework; path = System/Library/Frameworks/UIKit.framework; sourceTree = SDKROOT; };
 		E8AAE47F1799D021006C41CD /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
@@ -66,12 +67,8 @@
 		E8AAE4AF1799D076006C41CD /* APLocationDataSource.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = APLocationDataSource.h; sourceTree = "<group>"; };
 		E8AAE4B01799D076006C41CD /* CLHeading+AstralProjection.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "CLHeading+AstralProjection.h"; sourceTree = "<group>"; };
 		E8AAE4B11799D076006C41CD /* CLHeading+AstralProjection.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "CLHeading+AstralProjection.m"; sourceTree = "<group>"; };
-		E8AAE4B21799D076006C41CD /* CLLocation+AstralProjection.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "CLLocation+AstralProjection.h"; sourceTree = "<group>"; };
-		E8AAE4B31799D076006C41CD /* CLLocation+AstralProjection.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "CLLocation+AstralProjection.m"; sourceTree = "<group>"; };
 		E8AAE4B41799D076006C41CD /* EXT_CLHeading.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = EXT_CLHeading.h; sourceTree = "<group>"; };
 		E8AAE4B51799D076006C41CD /* EXT_CLHeading.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = EXT_CLHeading.m; sourceTree = "<group>"; };
-		E8AAE4B61799D076006C41CD /* EXT_CLLocation.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = EXT_CLLocation.h; sourceTree = "<group>"; };
-		E8AAE4B71799D076006C41CD /* EXT_CLLocation.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = EXT_CLLocation.m; sourceTree = "<group>"; };
 		E8AAE4BA1799D076006C41CD /* APAgentDataSource.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = APAgentDataSource.h; sourceTree = "<group>"; };
 		E8AAE4BB1799D076006C41CD /* APAgentDataSource.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = APAgentDataSource.m; sourceTree = "<group>"; };
 		E8AAE4BD1799D076006C41CD /* APGPXDataSource.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = APGPXDataSource.h; sourceTree = "<group>"; };
@@ -196,16 +193,14 @@
 				E8AAE4AB1799D076006C41CD /* APAstralProjection.m */,
 				E8AAE4AC1799D076006C41CD /* APHeadingDataDelegate.h */,
 				E8AAE4AD1799D076006C41CD /* APHeadingDataSource.h */,
+				E8A9E56217E3BE2E002B3431 /* APLocation.h */,
+				E8A9E56317E3BE2E002B3431 /* APLocation.m */,
 				E8AAE4AE1799D076006C41CD /* APLocationDataDelegate.h */,
 				E8AAE4AF1799D076006C41CD /* APLocationDataSource.h */,
 				E8AAE4B01799D076006C41CD /* CLHeading+AstralProjection.h */,
 				E8AAE4B11799D076006C41CD /* CLHeading+AstralProjection.m */,
-				E8AAE4B21799D076006C41CD /* CLLocation+AstralProjection.h */,
-				E8AAE4B31799D076006C41CD /* CLLocation+AstralProjection.m */,
 				E8AAE4B41799D076006C41CD /* EXT_CLHeading.h */,
 				E8AAE4B51799D076006C41CD /* EXT_CLHeading.m */,
-				E8AAE4B61799D076006C41CD /* EXT_CLLocation.h */,
-				E8AAE4B71799D076006C41CD /* EXT_CLLocation.m */,
 			);
 			path = Core;
 			sourceTree = "<group>";
@@ -333,9 +328,7 @@
 				E8AAE4971799D021006C41CD /* ViewController.m in Sources */,
 				E8AAE4C11799D076006C41CD /* APAstralProjection.m in Sources */,
 				E8AAE4C21799D076006C41CD /* CLHeading+AstralProjection.m in Sources */,
-				E8AAE4C31799D076006C41CD /* CLLocation+AstralProjection.m in Sources */,
 				E8AAE4C41799D076006C41CD /* EXT_CLHeading.m in Sources */,
-				E8AAE4C51799D076006C41CD /* EXT_CLLocation.m in Sources */,
 				E8AAE4C61799D076006C41CD /* APAgentDataSource.m in Sources */,
 				E8AAE4C71799D076006C41CD /* APGPXDataSource.m in Sources */,
 				E8AAE4C81799D076006C41CD /* APGPXParser.m in Sources */,
@@ -345,6 +338,7 @@
 				E8AAE4DA1799D096006C41CD /* SBJsonBase.m in Sources */,
 				E8AAE4DB1799D096006C41CD /* SBJsonParser.m in Sources */,
 				E8AAE4DC1799D096006C41CD /* SBJsonWriter.m in Sources */,
+				E8A9E56517E3BE2E002B3431 /* APLocation.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
