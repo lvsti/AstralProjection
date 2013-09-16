@@ -3,7 +3,7 @@
 
 ### Introduction
 
-Astral Projection (from hereon aka 'AP') is an extension to the iOS CoreLocation framework which can make testing of location-aware iPhone/iPad applications easier.
+Astral Projection (from hereon aka 'AP') is an extension to the iOS/OSX CoreLocation framework which can make testing of location-aware applications easier.
 
 
 ### The name
@@ -13,9 +13,9 @@ From Wikipedia: "Astral projection (or astral travel) is an interpretation of an
 
 ### What is it good for?
 
-Generally, apps that use location data can only be tested well when deployed on the device. The simulator has limited facilities for returning GPS coordinates, and the hardware builds worth equally little if the wandering "range" is limited to the length of the USB cable (e.g. in case of on-device debugging). But even if you are fine with deploying, how would you test use cases which involve motion and you don't get a damn fix in the whole office? This is when AP enters the scene.
+Generally, apps that use location data can only be tested well when deployed on the device but hardware builds aren't of much help if the wandering "range" is limited to the length of the USB cable (e.g. in case of on-device debugging). Unfortunately, the developer tools traditionally offer very basic facilities for returning GPS coordinates. Recent versions of Xcode have shown certain improvements, e.g. the support for GPX files, but there is still no way of getting heading information and interfering with the trajectory. This is when AP enters the scene.
 
-Astral Projection is a set of tools which allow you to generate fake location-related data that normally comes from the underlying hardware such as GPS, WiFi or 3G. AP is bundled with a couple of data sources which you can use right away, or, should you require a custom one, you can also add your own modules complying with a simple interface. 
+Astral Projection is a set of tools which allow you to generate fake location-related data that normally comes from the underlying hardware such as GPS, WiFi or 3G. AP is bundled with a couple of data sources which you can use right away or, should you require a custom one, you can also add your own modules complying with a simple interface. 
 
 
 ### How do I use it?
@@ -26,9 +26,9 @@ Location data sources are classes conforming to the `APLocationDataSource` proto
 
 Currently AP comes with two built-in data sources:
 
- * `APGPXDataSource` (location only): loads a GPX file and uses its waypoints, routes or tracks as location change event source. "Playback" can be speeded up/slown down by means of a time scale. If the point set does not have timestamps (waypoints usually don't), it is also possible to emit the points at a given frequency.
+- `APGPXDataSource` (location only): loads a GPX file and uses its waypoints, routes or tracks as location change event source. "Playback" can be speeded up/slown down by means of a time scale. If the point set does not have timestamps (waypoints usually don't), it is also possible to emit the points at a given frequency.
 
- * `APAgentDataSource` (location + heading): uses the location and heading data of a "field agent", transmitted through the network in real-time. The agent can be any iOS device with the bundled `APAgent` app installed. The agent sends its location information in UDP packets to a configurable IP address-port where the `APAgentDataSource` is supposed to be listening. `APAgentDataSource` then reports the extracted location data to the location manager.
+- `APAgentDataSource` (location + heading): uses the location and heading data of a "field agent", transmitted through the network in real-time. The agent can be any iOS device with the bundled `APAgent` app installed. The agent sends its location information in UDP packets to a configurable IP address-port where the `APAgentDataSource` is supposed to be listening. `APAgentDataSource` then reports the extracted location data to the location manager.
 
 To control the application-wide state of the CoreLocation framework, such as availability flags, you can provide a delegate of `APAstralProjectionDelegate` kind whose return values are then wired into the global location manager.
 
@@ -44,15 +44,21 @@ DISCLAIMER: Method swizzling and category overrides are DANGEROUS PRACTICES and 
 
 ### Known limitations
 
-As of now, AP is limited to location and heading data, that is, no significant-change, no regions, no nothing. In the future this may change if I happen to need that stuff or if I find an enthusiastic volunteer to code it for everyone's sake. :)
+Currently AP is limited to location and heading data, that is, no significant-change, no regions, no nothing. In the future this may change if I happen to need that stuff or if I find an enthusiastic volunteer to code it for everyone's sake. :)
+
+Please also note that, owing to its nature, AP is not capable of waking your app on location events. For that you can always revert to the functionality provided by the developer tools.
+
+For feature requests, please visit the GitHub [issue tracking page](https://github.com/lkxf/AstralProjection/issues) and leave your comments there.
 
 
 ### Installation
 
+Requirements: iOS 5.0 or above, OS X 10.6 or above
+
 Here are some guidelines for setting up AP in your project:
-- check out the latest revision (recommended to do so even if downloading the zip is easier)
+- check out the latest revision
 - add the `Core` files to your project 
-- add one or more data sources (note that `APAgentDataSource` depends on `JSON`, if you add this data source you have to add Stig Brautaset's `SBJSON` too -- see the ThirdParty folder for a legacy version)
+- add one or more data sources (note that `APAgentDataSource` depends on JSON, if you add this data source you have to add Stig Brautaset's `SBJSON` too -- see the `ThirdParty` folder for a legacy version)
 
 Some hints on how to integrate it in your code (see the `APMobileHost` and `APDesktopHost` sample apps for details):
 - instantiate and set up the desired data source(s)
