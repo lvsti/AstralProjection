@@ -34,7 +34,7 @@
         <h3>
 <a name="introduction" class="anchor" href="#introduction"><span class="octicon octicon-link"></span></a>Introduction</h3>
 
-<p><img src="images/astral_projection.png" align="right" alt="[logo]" border="0" style="width:256px; border:0; box-shadow:none"/>Astral Projection (from hereon aka 'AP') is an extension to the iOS/OSX CoreLocation framework which can make testing of location-aware iOS and OSX applications easier.</p>
+<p><img src="images/astral_projection.png" align="right" alt="[logo]" border="0" style="width:256px; border:0; box-shadow:none"/>Astral Projection (from hereon aka 'AP') is an extension to the iOS/OSX CoreLocation framework which can make testing of location-aware applications easier.</p>
 
 <h3>
 <a name="the-name" class="anchor" href="#the-name"><span class="octicon octicon-link"></span></a>The name</h3>
@@ -44,9 +44,9 @@
 <h3>
 <a name="what-is-it-good-for" class="anchor" href="#what-is-it-good-for"><span class="octicon octicon-link"></span></a>What is it good for?</h3>
 
-<p>Generally, apps that use location data can only be tested well when deployed on the device. The simulator has limited facilities for returning GPS coordinates, and the hardware builds worth equally little if the wandering "range" is limited to the length of the USB cable (e.g. in case of on-device debugging). But even if you are fine with deploying, how would you test use cases which involve motion and you don't get a damn fix in the whole office? This is when AP enters the scene.</p>
+<p>Generally, apps that use location data can only be tested well when deployed on the device but hardware builds aren't of much help if the wandering "range" is limited to the length of the USB cable (e.g. in case of on-device debugging). Unfortunately, the developer tools traditionally offer very basic facilities for returning GPS coordinates. Recent versions of Xcode have shown certain improvements, e.g. the support for GPX files, but there is still no way of getting heading information and interfering with the trajectory. This is when AP enters the scene.</p>
 
-<p>Astral Projection is a set of tools which allow you to generate fake location-related data that normally comes from the underlying hardware such as GPS, WiFi or 3G. AP is bundled with a couple of data sources which you can use right away, or, should you require a custom one, you can also add your own modules complying with a simple interface. </p>
+<p>Astral Projection is a set of tools which allow you to generate fake location-related data that normally comes from the underlying hardware such as GPS, WiFi or 3G. AP is bundled with a couple of data sources which you can use right away or, should you require a custom one, you can also add your own modules complying with a simple interface.</p>
 
 <h3>
 <a name="how-do-i-use-it" class="anchor" href="#how-do-i-use-it"><span class="octicon octicon-link"></span></a>How do I use it?</h3>
@@ -74,17 +74,23 @@
 <h3>
 <a name="known-limitations" class="anchor" href="#known-limitations"><span class="octicon octicon-link"></span></a>Known limitations</h3>
 
-<p>As of now, AP is limited to location and heading data, that is, no significant-change, no regions, no nothing. In the future this may change if I happen to need that stuff or if I find an enthusiastic volunteer to code it for everyone's sake. :)</p>
+<p>Currently AP is limited to location and heading data, that is, no significant-change, no regions, no nothing. In the future this may change if I happen to need that stuff or if I find an enthusiastic volunteer to code it for everyone's sake. :)</p>
+
+<p>Please also note that, owing to its nature, AP is not capable of waking your app on location events. For that you can always revert to the functionality provided by the developer tools.</p>
+
+<p>For feature requests, please visit the GitHub <a href="https://github.com/lkxf/AstralProjection/issues">issue tracking page</a> and leave your comments there.</p>
 
 <h3>
 <a name="installation" class="anchor" href="#installation"><span class="octicon octicon-link"></span></a>Installation</h3>
 
+<p>Requirements: iOS 5.0 or above, OS X 10.6 or above</p>
+
 <p>Here are some guidelines for setting up AP in your project:</p>
 
 <ul>
-<li>check out the latest revision (recommended to do so even if downloading the zip is easier)</li>
+<li>check out the latest revision</li>
 <li>add the <code>Core</code> files to your project </li>
-<li>add one or more data sources (note that <code>APAgentDataSource</code> depends on <code>JSON</code>, if you add this data source you have to add Stig Brautaset's <code>SBJSON</code> too -- see the ThirdParty folder for a legacy version)</li>
+<li>add one or more data sources (note that <code>APAgentDataSource</code> depends on JSON, if you add this data source you have to add Stig Brautaset's <code>SBJSON</code> too -- see the <code>ThirdParty</code> folder for a legacy version)</li>
 </ul><p>Some hints on how to integrate it in your code (see the <code>APMobileHost</code> and <code>APDesktopHost</code> sample apps for details):</p>
 
 <ul>
