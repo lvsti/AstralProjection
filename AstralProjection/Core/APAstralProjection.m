@@ -349,7 +349,9 @@ static APMethodSwizzle swizzledClassMethods[] =
 		return;
 	}
 	
-	[locationListeners enumerateKeysAndObjectsUsingBlock:^(id key, NSMutableDictionary* obj, BOOL *stop) {
+	NSDictionary* currentListeners = [locationListeners copy];
+	
+	[currentListeners enumerateKeysAndObjectsUsingBlock:^(id key, NSMutableDictionary* obj, BOOL *stop) {
 		CLLocationManager* locMgr = [key nonretainedObjectValue];
 		
 		APLocation* lastLocation = [obj objectForKey:kLastRegisteredValueKey];
@@ -385,6 +387,8 @@ static APMethodSwizzle swizzledClassMethods[] =
 			}
 		}
 	}];
+	
+	[currentListeners release];
 }
 
 
@@ -416,7 +420,9 @@ static APMethodSwizzle swizzledClassMethods[] =
 - (void)locationDataSource:(id<APLocationDataSource>)aDataSource
 	didFailToUpdateLocationWithError:(NSError*)aError
 {
-	[locationListeners enumerateKeysAndObjectsUsingBlock:^(id key, NSMutableDictionary* obj, BOOL *stop) {
+	NSDictionary* currentListeners = [locationListeners copy];
+	
+	[currentListeners enumerateKeysAndObjectsUsingBlock:^(id key, NSMutableDictionary* obj, BOOL *stop) {
 		CLLocationManager* locMgr = [key nonretainedObjectValue];
 
 		if ( [locMgr.delegate respondsToSelector:@selector(locationManager:didFailWithError:)] )
@@ -436,6 +442,8 @@ static APMethodSwizzle swizzledClassMethods[] =
 			}
 		}
 	}];
+	
+	[currentListeners release];
 }
 
 
@@ -467,7 +475,9 @@ static APMethodSwizzle swizzledClassMethods[] =
 		return;
 	}
 
-	[headingListeners enumerateKeysAndObjectsUsingBlock:^(id key, NSMutableDictionary* obj, BOOL *stop) {
+	NSDictionary* currentListeners = [headingListeners copy];
+	
+	[currentListeners enumerateKeysAndObjectsUsingBlock:^(id key, NSMutableDictionary* obj, BOOL *stop) {
 		CLLocationManager* locMgr = [key nonretainedObjectValue];
 		
 		APHeading* lastHeading = [obj objectForKey:kLastRegisteredValueKey];
@@ -496,6 +506,8 @@ static APMethodSwizzle swizzledClassMethods[] =
 			}
 		}
 	}];
+	
+	[headingListeners release];
 #endif
 }
 
