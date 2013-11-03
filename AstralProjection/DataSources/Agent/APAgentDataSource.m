@@ -12,7 +12,6 @@
 #include <unistd.h>
 #include <netinet/in.h>
 
-#import "JSON.h"
 #import "APLocationDataDelegate.h"
 #import "APHeadingDataDelegate.h"
 #import "APLocation.h"
@@ -267,8 +266,9 @@ static const NSInteger kThreadStopped = 2;
 				NSData* packet = [NSData dataWithBytesNoCopy:[buffer mutableBytes]
 													  length:bytesReceived
 												freeWhenDone:NO];
-				NSDictionary* message = [[NSString stringWithCString:(const char*)[packet bytes]
-															encoding:NSUTF8StringEncoding] JSONValue];
+				NSDictionary* message = [NSJSONSerialization JSONObjectWithData:packet
+																		options:0
+																		  error:NULL];
 				
 				NSLog(@"%@",message);
 				

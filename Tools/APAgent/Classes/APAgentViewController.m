@@ -10,7 +10,6 @@
 #import <CoreLocation/CoreLocation.h>
 #import "APHeadingDataSource.h"
 #import "APUDPConnection.h"
-#import "JSON.h"
 
 
 #define LOCATION_HARDWARE_PRESENT	1
@@ -228,7 +227,10 @@ static NSString* const kLastPortKey = @"LastPort";
 {
 	if ( lastMessage )
 	{
-		[udpConnection sendData:[[lastMessage JSONRepresentation] dataUsingEncoding:NSUTF8StringEncoding]];
+		NSData* jsonData = [NSJSONSerialization dataWithJSONObject:lastMessage
+														   options:0
+															 error:NULL];
+		[udpConnection sendData:jsonData];
 	}
 }
 
@@ -355,7 +357,11 @@ static NSString* const kLastPortKey = @"LastPort";
 		[lastMessage release];
 		lastMessage = [message retain];
 		
-		[udpConnection sendData:[[message JSONRepresentation] dataUsingEncoding:NSUTF8StringEncoding]];
+		NSData* jsonData = [NSJSONSerialization dataWithJSONObject:lastMessage
+														   options:0
+															 error:NULL];
+
+		[udpConnection sendData:jsonData];
 		NSLog(@"location update sent");
 	}
 }
@@ -375,7 +381,10 @@ static NSString* const kLastPortKey = @"LastPort";
 								 nil], @"data",
 								nil];
 		
-		[udpConnection sendData:[[packet JSONRepresentation] dataUsingEncoding:NSUTF8StringEncoding]];
+		NSData* jsonData = [NSJSONSerialization dataWithJSONObject:packet
+														   options:0
+															 error:NULL];
+		[udpConnection sendData:jsonData];
 	}
 }
 
@@ -401,7 +410,10 @@ static NSString* const kLastPortKey = @"LastPort";
 								 nil], @"data",
 								nil];
 		
-		[udpConnection sendData:[[packet JSONRepresentation] dataUsingEncoding:NSUTF8StringEncoding]];
+		NSData* jsonData = [NSJSONSerialization dataWithJSONObject:packet
+														   options:0
+															 error:NULL];
+		[udpConnection sendData:jsonData];
 		NSLog(@"heading update sent");
 	}
 }
