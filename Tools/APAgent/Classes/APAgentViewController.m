@@ -44,6 +44,7 @@ static NSString* const kLastPortKey = @"LastPort";
 	BOOL isSending;
 	
 	NSDictionary* lastMessage;
+	NSDateFormatter* dateFmt;
 
 #if !LOCATION_HARDWARE_PRESENT
 	id<APLocationDataSource> locationDataSource;
@@ -112,6 +113,9 @@ static NSString* const kLastPortKey = @"LastPort";
 		
 		udpConnection = [[APUDPConnection alloc] init];
 		
+		dateFmt = [[NSDateFormatter alloc] init];
+		[dateFmt setDateFormat:kDateFormat];
+
 		isMonitoringLocation = NO;
 		isMonitoringHeading = NO;
 		isSending = NO;
@@ -137,6 +141,7 @@ static NSString* const kLastPortKey = @"LastPort";
 
 	[udpConnection release];
 	[lastMessage release];
+	[dateFmt release];
     [super dealloc];
 }
 
@@ -319,9 +324,6 @@ static NSString* const kLastPortKey = @"LastPort";
 	
 	if ( isSending )
 	{
-		NSDateFormatter* dateFmt = [[NSDateFormatter alloc] init];
-		[dateFmt setDateFormat:kDateFormat];
-		
 		NSDictionary* oldDic = [NSDictionary dictionaryWithObjectsAndKeys:
 								[NSNumber numberWithDouble:aOldLocation.coordinate.latitude], @"lat",
 								[NSNumber numberWithDouble:aOldLocation.coordinate.longitude], @"lon",
@@ -343,8 +345,6 @@ static NSString* const kLastPortKey = @"LastPort";
 								[NSNumber numberWithDouble:aNewLocation.speed], @"spd",
 								[NSNumber numberWithDouble:aNewLocation.course], @"crs",
 								nil];
-		
-		[dateFmt release];
 		
 		NSDictionary* message = [NSDictionary dictionaryWithObjectsAndKeys:
 								 @"update.location", @"type",
@@ -394,9 +394,6 @@ static NSString* const kLastPortKey = @"LastPort";
 {
 	if ( isSending )
 	{
-		NSDateFormatter* dateFmt = [[NSDateFormatter alloc] init];
-		[dateFmt setDateFormat:kDateFormat];
-		
 		NSDictionary* packet = [NSDictionary dictionaryWithObjectsAndKeys:
 								@"update.heading", @"type",
 								[NSDictionary dictionaryWithObjectsAndKeys:
