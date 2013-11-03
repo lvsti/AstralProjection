@@ -58,7 +58,7 @@ Requirements: iOS 5.0 or above, OS X 10.6 or above
 Here are some guidelines for setting up AP in your project:
 - check out the latest revision
 - add the `Core` files to your project 
-- add one or more data sources (note that `APAgentDataSource` depends on JSON, if you add this data source you have to add Stig Brautaset's `SBJSON` too -- see the `ThirdParty` folder for a legacy version)
+- add one or more data sources
 
 Some hints on how to integrate it in your code (see the `APMobileHost` and `APDesktopHost` sample apps for details):
 - instantiate and set up the desired data source(s)
