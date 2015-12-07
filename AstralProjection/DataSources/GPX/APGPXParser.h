@@ -14,13 +14,12 @@ extern NSString* const kGPXPointAltitude;
 extern NSString* const kGPXPointTime;
 
 
-@interface APGPXParser : NSObject <NSXMLParserDelegate>
+@interface APGPXParser : NSObject
 
-@property (nonatomic, retain, readonly) NSArray* waypoints;
-@property (nonatomic, retain, readonly) NSArray* routes;
-@property (nonatomic, retain, readonly) NSArray* tracks;
+@property (nonatomic, copy, readonly) NSArray* waypoints;
+@property (nonatomic, copy, readonly) NSArray* routes;
+@property (nonatomic, copy, readonly) NSArray* tracks;
 
-
-- (id)initWithURL:(NSURL*)aUrl;
+- (instancetype)initWithContentsOfURL:(NSURL*)aURL;
 
 @end

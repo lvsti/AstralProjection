@@ -30,41 +30,29 @@ static const NSInteger kThreadStopped = 2;
 
 @interface APAgentDataSource ()
 {
-	id<APLocationDataDelegate> locationDataDelegate;
-	id<APHeadingDataDelegate> headingDataDelegate;
-	int scoutSocket;
-	NSConditionLock* threadLock;
-	NSDateFormatter* dateFmt;
+	int _scoutSocket;
+	NSConditionLock* _threadLock;
+	NSDateFormatter* _dateFmt;
 	
-	BOOL isLocationActive;
-	BOOL isHeadingActive;
+	BOOL _isLocationActive;
+	BOOL _isHeadingActive;
 }
 
-- (void)receiverThread;
-- (void)processLocationUpdateMessage:(NSDictionary*)aMessage;
-- (void)processLocationErrorMessage:(NSDictionary*)aMessage;
-- (void)processHeadingUpdateMessage:(NSDictionary*)aMessage;
 @end
 
 
 
 @implementation APAgentDataSource
 
-@synthesize locationDataDelegate;
-@synthesize headingDataDelegate;
-
-
-// -----------------------------------------------------------------------------
-// APAgentDataSource::initWithUdpPort:
-// -----------------------------------------------------------------------------
-- (id)initWithUdpPort:(unsigned short)aPort
+- (id)initWithUDPPort:(unsigned short)aPort
 {
-	if ( (self = [super init]) )
+    self = [super init];
+	if (self)
 	{
-		threadLock = [[NSConditionLock alloc] initWithCondition:kThreadStopped];
+		_threadLock = [[NSConditionLock alloc] initWithCondition:kThreadStopped];
 		
-		scoutSocket = socket(PF_INET, SOCK_DGRAM, 0);
-		if ( scoutSocket < 0 )
+		_scoutSocket = socket(PF_INET, SOCK_DGRAM, 0);
+		if (_scoutSocket < 0)
 		{
 			NSLog(@"ERROR: socket");
 		}
@@ -77,193 +65,164 @@ static const NSInteger kThreadStopped = 2;
 		address.sin_port = htons(aPort);
 		address.sin_addr.s_addr = htonl(INADDR_ANY);
 		
-		if ( bind(scoutSocket, (const struct sockaddr*)&address, slen) < 0 )
+		if (bind(_scoutSocket, (const struct sockaddr*)&address, slen) < 0)
 		{
 			NSLog(@"ERROR: bind");
 		}
 		
-		dateFmt = [[NSDateFormatter alloc] init];
-		[dateFmt setDateFormat:kDateFormat];
+		_dateFmt = [NSDateFormatter new];
+        _dateFmt.dateFormat = kDateFormat;
 	}
 	
 	return self;
 }
 
 
-// -----------------------------------------------------------------------------
-// APAgentDataSource::dealloc
-// -----------------------------------------------------------------------------
 - (void)dealloc
 {
-	[threadLock lock];
-	if ( [threadLock condition] == kThreadExecuting )
+	[_threadLock lock];
+	if (_threadLock.condition == kThreadExecuting)
 	{
-		[threadLock unlockWithCondition:kThreadStopping];
+		[_threadLock unlockWithCondition:kThreadStopping];
 	}
 	else
 	{
-		[threadLock unlock];
+		[_threadLock unlock];
 	}
 	
-	[threadLock lockWhenCondition:kThreadStopped];
-	[threadLock unlock];
+	[_threadLock lockWhenCondition:kThreadStopped];
+	[_threadLock unlock];
 	
-	[threadLock release];
-	
-	shutdown(scoutSocket, SHUT_RDWR);
-	close(scoutSocket);
-	
-	[threadLock release];
-	[dateFmt release];
-	
-	[super dealloc];
+	shutdown(_scoutSocket, SHUT_RDWR);
+	close(_scoutSocket);
 }
 
 
-#pragma mark -
-#pragma mark from APLocationDataSource:
+#pragma mark - from APLocationDataSource:
 
 
-// -----------------------------------------------------------------------------
-// APAgentDataSource::startGeneratingLocationEvents
-// -----------------------------------------------------------------------------
 - (void)startGeneratingLocationEvents
 {
-	[threadLock lock];
-	if ( [threadLock condition] == kThreadStopped )
+	[_threadLock lock];
+	if (_threadLock.condition == kThreadStopped)
 	{
 		[NSThread detachNewThreadSelector:@selector(receiverThread)
 								 toTarget:self
 							   withObject:nil];
 		
-		[threadLock unlockWithCondition:kThreadExecuting];
+		[_threadLock unlockWithCondition:kThreadExecuting];
 	}
 	else
 	{
-		[threadLock unlock];
+		[_threadLock unlock];
 	}
 
-	isLocationActive = YES;
+	_isLocationActive = YES;
 }
 
 
-// -----------------------------------------------------------------------------
-// APAgentDataSource::stopGeneratingLocationEvents
-// -----------------------------------------------------------------------------
 - (void)stopGeneratingLocationEvents
 {
-	[threadLock lock];
-	if ( [threadLock condition] == kThreadExecuting && !isHeadingActive )
+	[_threadLock lock];
+	if (_threadLock.condition == kThreadExecuting && !_isHeadingActive)
 	{
-		[threadLock unlockWithCondition:kThreadStopping];
+		[_threadLock unlockWithCondition:kThreadStopping];
 	}
 	else
 	{
-		[threadLock unlock];
+		[_threadLock unlock];
 	}
 
-	isLocationActive = NO;
+	_isLocationActive = NO;
 }
 
 
-#pragma mark -
-#pragma mark from APHeadingDataSource:
+#pragma mark - from APHeadingDataSource:
 
 
-// -----------------------------------------------------------------------------
-// APAgentDataSource::startGeneratingHeadingEvents
-// -----------------------------------------------------------------------------
 - (void)startGeneratingHeadingEvents
 {
-	[threadLock lock];
-	if ( [threadLock condition] == kThreadStopped )
+	[_threadLock lock];
+	if (_threadLock.condition == kThreadStopped)
 	{
 		[NSThread detachNewThreadSelector:@selector(receiverThread)
 								 toTarget:self
 							   withObject:nil];
 		
-		[threadLock unlockWithCondition:kThreadExecuting];
+		[_threadLock unlockWithCondition:kThreadExecuting];
 	}
 	else
 	{
-		[threadLock unlock];
+		[_threadLock unlock];
 	}
 
-	isHeadingActive = YES;
+	_isHeadingActive = YES;
 }
 
 
-// -----------------------------------------------------------------------------
-// APAgentDataSource::stopGeneratingHeadingEvents
-// -----------------------------------------------------------------------------
 - (void)stopGeneratingHeadingEvents
 {
-	[threadLock lock];
-	if ( [threadLock condition] == kThreadExecuting && !isLocationActive )
+	[_threadLock lock];
+	if (_threadLock.condition == kThreadExecuting && !_isLocationActive)
 	{
-		[threadLock unlockWithCondition:kThreadStopping];
+		[_threadLock unlockWithCondition:kThreadStopping];
 	}
 	else
 	{
-		[threadLock unlock];
+		[_threadLock unlock];
 	}
 	
-	isHeadingActive = NO;
+	_isHeadingActive = NO;
 }
 
 
-#pragma mark -
-#pragma mark new methods:
+#pragma mark - new methods:
 
 
-// -----------------------------------------------------------------------------
-// APAgentDataSource::receiverThread
-// -----------------------------------------------------------------------------
 - (void)receiverThread
 {
-	NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
-	
+    @autoreleasepool {
 	NSMutableData* buffer = [[NSMutableData alloc] initWithLength:kMaxPacketSize+1];
 	
-	[threadLock lockWhenCondition:kThreadExecuting];
-	[threadLock unlock];
+	[_threadLock lockWhenCondition:kThreadExecuting];
+	[_threadLock unlock];
 
-	[threadLock lock];
-	while ( [threadLock condition] != kThreadStopping )
+	[_threadLock lock];
+	while (_threadLock.condition != kThreadStopping)
 	{
-		[threadLock unlock];
+		[_threadLock unlock];
 		
 		fd_set fds;
 		FD_ZERO(&fds);
-		FD_SET(scoutSocket, &fds);
+		FD_SET(_scoutSocket, &fds);
 
 		struct timeval tv;
 		tv.tv_sec = 0;
 		tv.tv_usec = 100*1000;
 		
-		select(scoutSocket+1, &fds, NULL, NULL, &tv);
+		select(_scoutSocket+1, &fds, NULL, NULL, &tv);
 		
-		if ( FD_ISSET(scoutSocket, &fds) )
+		if (FD_ISSET(_scoutSocket, &fds))
 		{
-			NSAutoreleasePool* iterationPool = [[NSAutoreleasePool alloc] init];
+            @autoreleasepool {
 
 			struct sockaddr_in remoteAddress;
 			socklen_t slen = sizeof(remoteAddress);
 			
-			ssize_t bytesReceived = recvfrom(scoutSocket, 
+			ssize_t bytesReceived = recvfrom(_scoutSocket, 
 											 [buffer mutableBytes], 
 											 kMaxPacketSize, 
 											 0, 
 											 (struct sockaddr*)&remoteAddress, 
 											 &slen);
-			if ( bytesReceived < 0 )
+			if (bytesReceived < 0)
 			{
 				NSLog(@"ERROR: recvfrom");
 			}
 			else
 			{
 				[buffer resetBytesInRange:NSMakeRange(bytesReceived, 1)];
-				NSData* packet = [NSData dataWithBytesNoCopy:[buffer mutableBytes]
+				NSData* packet = [NSData dataWithBytesNoCopy:buffer.mutableBytes
 													  length:bytesReceived
 												freeWhenDone:NO];
 				NSDictionary* message = [NSJSONSerialization JSONObjectWithData:packet
@@ -272,133 +231,98 @@ static const NSInteger kThreadStopped = 2;
 				
 				NSLog(@"%@",message);
 				
-				if ( isLocationActive && locationDataDelegate )
+				if (_isLocationActive && _locationDataDelegate)
 				{
-					if ( [[message objectForKey:@"type"] isEqualToString:@"update.location"] )
+					if ([message[@"type"] isEqualToString:@"update.location"])
 					{
-						[self processLocationUpdateMessage:[message objectForKey:@"data"]];
+						[self processLocationUpdateMessage:message[@"data"]];
 					}
-					else if ( [[message objectForKey:@"type"] isEqualToString:@"error"] )
+					else if ([message[@"type"] isEqualToString:@"error"])
 					{
-						[self processLocationErrorMessage:[message objectForKey:@"data"]];
+						[self processLocationErrorMessage:message[@"data"]];
 					}
 				}
 
-				if ( isHeadingActive && headingDataDelegate && 
-					 [[message objectForKey:@"type"] isEqualToString:@"update.heading"] )
+				if (_isHeadingActive && _headingDataDelegate &&
+                    [message[@"type"] isEqualToString:@"update.heading"])
 				{
-					[self processHeadingUpdateMessage:[message objectForKey:@"data"]];
+					[self processHeadingUpdateMessage:message[@"data"]];
 				}
 			}
 
-			[iterationPool release];
+            }
 		}
 		
-		[threadLock lock];
+		[_threadLock lock];
 	}
-	[threadLock unlock];
+	[_threadLock unlock];
 	
 	// put cleanup here
-	[buffer release];
-	
-	[threadLock lock];
-	[threadLock unlockWithCondition:kThreadStopped];
-	
-	[pool release];
+	[_threadLock lock];
+	[_threadLock unlockWithCondition:kThreadStopped];
+    }
 }
 
 
-// -----------------------------------------------------------------------------
-// APAgentDataSource::processLocationUpdateMessage:
-// -----------------------------------------------------------------------------
 - (void)processLocationUpdateMessage:(NSDictionary*)aMessage
 {
 	CLLocationCoordinate2D coord;
 	
-	NSDictionary* oldLoc = [aMessage objectForKey:@"old"];
-	coord = CLLocationCoordinate2DMake([[oldLoc objectForKey:@"lat"] doubleValue],
-									   [[oldLoc objectForKey:@"lon"] doubleValue]);
+	NSDictionary* oldLoc = aMessage[@"old"];
+	coord = CLLocationCoordinate2DMake([oldLoc[@"lat"] doubleValue],
+									   [oldLoc[@"lon"] doubleValue]);
 	
 	
-#if TARGET_OS_IPHONE || __MAC_OS_X_VERSION_MIN_REQUIRED > __MAC_10_6
 	APLocation* oldLocation = [[APLocation alloc] initWithCoordinate:coord
-															altitude:[[oldLoc objectForKey:@"alt"] doubleValue]
-												  horizontalAccuracy:[[oldLoc objectForKey:@"hacc"] doubleValue]
-													verticalAccuracy:[[oldLoc objectForKey:@"vacc"] doubleValue]
-															  course:[[oldLoc objectForKey:@"crs"] doubleValue]
-															   speed:[[oldLoc objectForKey:@"spd"] doubleValue]
-														   timestamp:[dateFmt dateFromString:[oldLoc objectForKey:@"time"]]];
-#else
-	APLocation* oldLocation = [[APLocation alloc] initWithCoordinate:coord
-															altitude:[[oldLoc objectForKey:@"alt"] doubleValue]
-												  horizontalAccuracy:[[oldLoc objectForKey:@"hacc"] doubleValue]
-													verticalAccuracy:[[oldLoc objectForKey:@"vacc"] doubleValue]
-														   timestamp:[dateFmt dateFromString:[oldLoc objectForKey:@"time"]]];
-#endif
+															altitude:[oldLoc[@"alt"] doubleValue]
+												  horizontalAccuracy:[oldLoc[@"hacc"] doubleValue]
+													verticalAccuracy:[oldLoc[@"vacc"] doubleValue]
+															  course:[oldLoc[@"crs"] doubleValue]
+															   speed:[oldLoc[@"spd"] doubleValue]
+														   timestamp:[_dateFmt dateFromString:oldLoc[@"time"]]];
 	
-	NSDictionary* newLoc = [aMessage objectForKey:@"new"];
-	coord = CLLocationCoordinate2DMake([[newLoc objectForKey:@"lat"] doubleValue],
-									   [[newLoc objectForKey:@"lon"] doubleValue]);
+	NSDictionary* newLoc = aMessage[@"new"];
+	coord = CLLocationCoordinate2DMake([newLoc[@"lat"] doubleValue],
+									   [newLoc[@"lon"] doubleValue]);
 
-#if TARGET_OS_IPHONE || __MAC_OS_X_VERSION_MIN_REQUIRED > __MAC_10_6
 	APLocation* newLocation = [[APLocation alloc] initWithCoordinate:coord
-															altitude:[[newLoc objectForKey:@"alt"] doubleValue]
-												  horizontalAccuracy:[[newLoc objectForKey:@"hacc"] doubleValue]
-													verticalAccuracy:[[newLoc objectForKey:@"vacc"] doubleValue]
-															  course:[[newLoc objectForKey:@"crs"] doubleValue]
-															   speed:[[newLoc objectForKey:@"spd"] doubleValue]
-														   timestamp:[dateFmt dateFromString:[newLoc objectForKey:@"time"]]];
-#else
-	APLocation* newLocation = [[APLocation alloc] initWithCoordinate:coord
-															altitude:[[newLoc objectForKey:@"alt"] doubleValue]
-												  horizontalAccuracy:[[newLoc objectForKey:@"hacc"] doubleValue]
-													verticalAccuracy:[[newLoc objectForKey:@"vacc"] doubleValue]
-														   timestamp:[dateFmt dateFromString:[newLoc objectForKey:@"time"]]];
-#endif
+															altitude:[newLoc[@"alt"] doubleValue]
+												  horizontalAccuracy:[newLoc[@"hacc"] doubleValue]
+													verticalAccuracy:[newLoc[@"vacc"] doubleValue]
+															  course:[newLoc[@"crs"] doubleValue]
+															   speed:[newLoc[@"spd"] doubleValue]
+														   timestamp:[_dateFmt dateFromString:newLoc[@"time"]]];
 	
-	[locationDataDelegate locationDataSource:self
-						 didUpdateToLocation:newLocation
-								fromLocation:oldLocation];
-	
-	[oldLocation release];
-	[newLocation release];
+	[_locationDataDelegate locationDataSource:self
+                          didUpdateToLocation:newLocation
+                                 fromLocation:oldLocation];
 }
 
 
-// -----------------------------------------------------------------------------
-// APAgentDataSource::processLocationErrorMessage:
-// -----------------------------------------------------------------------------
 - (void)processLocationErrorMessage:(NSDictionary*)aMessage
 {
-	NSError* error = [NSError errorWithDomain:[aMessage objectForKey:@"domain"]
-										 code:[[aMessage objectForKey:@"code"] integerValue]
-									 userInfo:[aMessage objectForKey:@"userInfo"]];
+	NSError* error = [NSError errorWithDomain:aMessage[@"domain"]
+										 code:[aMessage[@"code"] integerValue]
+									 userInfo:aMessage[@"userInfo"]];
 	
-	[locationDataDelegate locationDataSource:self
-			didFailToUpdateLocationWithError:error];
+	[_locationDataDelegate locationDataSource:self
+             didFailToUpdateLocationWithError:error];
 }
 
 
-// -----------------------------------------------------------------------------
-// APAgentDataSource::processHeadingUpdateMessage:
-// -----------------------------------------------------------------------------
 - (void)processHeadingUpdateMessage:(NSDictionary*)aMessage
 {
-	APHeading* heading = [[APHeading alloc] initWithMagneticHeading:[[aMessage objectForKey:@"mag"] doubleValue]
-														trueHeading:[[aMessage objectForKey:@"true"] doubleValue]
-														   accuracy:[[aMessage objectForKey:@"acc"] doubleValue]
-																  x:[[aMessage objectForKey:@"x"] doubleValue]
-																  y:[[aMessage objectForKey:@"y"] doubleValue]
-																  z:[[aMessage objectForKey:@"z"] doubleValue]
-														  timestamp:[dateFmt dateFromString:[aMessage objectForKey:@"time"]]];
+	APHeading* heading = [[APHeading alloc] initWithMagneticHeading:[aMessage[@"mag"] doubleValue]
+														trueHeading:[aMessage[@"true"] doubleValue]
+														   accuracy:[aMessage[@"acc"] doubleValue]
+																  x:[aMessage[@"x"] doubleValue]
+																  y:[aMessage[@"y"] doubleValue]
+																  z:[aMessage[@"z"] doubleValue]
+														  timestamp:[_dateFmt dateFromString:aMessage[@"time"]]];
 	
-	[headingDataDelegate headingDataSource:self
-						didUpdateToHeading:heading];
-	
-	[heading release];
+	[_headingDataDelegate headingDataSource:self
+                         didUpdateToHeading:heading];
 }
-
-
 
 
 @end

@@ -9,23 +9,26 @@
 #include <sys/socket.h>
 #include <arpa/inet.h>
 #include <unistd.h>
+#import <netinet/in.h>
 
 
-@implementation APUDPConnection
-
+@implementation APUDPConnection {
+    int _hostSocket;
+    struct sockaddr_in _address;
+}
 
 - (id)init
 {
-	if ( (self = [super init]) )
+    self = [super init];
+	if (self)
 	{
-		bzero(&address, sizeof(address));
-		address.sin_family = AF_INET;
+		bzero(&_address, sizeof(_address));
+		_address.sin_family = AF_INET;
 
-		hostSocket = socket(PF_INET, SOCK_DGRAM, 0);
-		if ( hostSocket < 0 )
+		_hostSocket = socket(PF_INET, SOCK_DGRAM, 0);
+		if (_hostSocket < 0)
 		{
 			NSLog(@"ERROR: socket");
-			[self release];
 			self = nil;
 		}
 	}
@@ -36,33 +39,29 @@
 
 - (void)dealloc
 {
-	shutdown(hostSocket, SHUT_RDWR);
-	close(hostSocket);
-	[super dealloc];
+	shutdown(_hostSocket, SHUT_RDWR);
+	close(_hostSocket);
 }
 
 
-- (void)setAddress:(NSString*)aAddress
+- (void)setIpAddress:(NSString*)aAddress
 {
-	address.sin_addr.s_addr = inet_addr([aAddress cStringUsingEncoding:NSASCIIStringEncoding]);
+	_address.sin_addr.s_addr = inet_addr(aAddress.UTF8String);
 }
 
 
 - (void)setPort:(unsigned short)aPort
 {
-	address.sin_port = htons(aPort);
+	_address.sin_port = htons(aPort);
 }
 
 
 - (void)sendData:(NSData*)aData
 {
-	if ( sendto( hostSocket, [aData bytes], [aData length], 0, (const struct sockaddr*)&address, sizeof(address) ) < 0 )
+	if (sendto(_hostSocket, aData.bytes, aData.length, 0, (const struct sockaddr*)&_address, sizeof(_address)) < 0)
 	{
 		NSLog(@"ERROR: sendto");
 	}
-	
 }
-
-
 
 @end

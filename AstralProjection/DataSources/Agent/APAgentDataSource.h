@@ -12,9 +12,9 @@
 
 @interface APAgentDataSource : NSObject <APLocationDataSource, APHeadingDataSource>
 
-@property (nonatomic, assign) id<APLocationDataDelegate> locationDataDelegate;
-@property (nonatomic, assign) id<APHeadingDataDelegate> headingDataDelegate;
+@property (nonatomic, weak) id<APLocationDataDelegate> locationDataDelegate;
+@property (nonatomic, weak) id<APHeadingDataDelegate> headingDataDelegate;
 
-- (id)initWithUdpPort:(unsigned short)aPort;
+- (id)initWithUDPPort:(unsigned short)aPort;
 
 @end

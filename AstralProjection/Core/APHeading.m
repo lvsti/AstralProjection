@@ -19,28 +19,18 @@ NSString* const kAPHeadingDescriptionFormat = @"magneticHeading %3.2f trueHeadin
 
 
 @interface APHeading ()
-{
-	CLLocationDirection magneticHeading;
-	CLLocationDirection trueHeading;
-	CLLocationDirection headingAccuracy;
-	CLHeadingComponentValue x;
-	CLHeadingComponentValue y;
-	CLHeadingComponentValue z;
-}
+@property(nonatomic, assign, readwrite) CLLocationDirection magneticHeading;
+@property(nonatomic, assign, readwrite) CLLocationDirection trueHeading;
+@property(nonatomic, assign, readwrite) CLLocationDirection headingAccuracy;
+@property(nonatomic, assign, readwrite) CLHeadingComponentValue x;
+@property(nonatomic, assign, readwrite) CLHeadingComponentValue y;
+@property(nonatomic, assign, readwrite) CLHeadingComponentValue z;
+@property(nonatomic, copy, readwrite) NSDate* timestamp;
 @end
 
 
 
 @implementation APHeading
-
-@synthesize magneticHeading;
-@synthesize trueHeading;
-@synthesize headingAccuracy;
-@synthesize x;
-@synthesize y;
-@synthesize z;
-@synthesize timestamp;
-
 
 - (APHeading*)initWithMagneticHeading:(CLLocationDirection)aMagneticHeading
 						  trueHeading:(CLLocationDirection)aTrueHeading
@@ -54,38 +44,31 @@ NSString* const kAPHeadingDescriptionFormat = @"magneticHeading %3.2f trueHeadin
 	
 	if (self)
 	{
-		magneticHeading = aMagneticHeading;
-		trueHeading = aTrueHeading;
-		headingAccuracy = aAccuracy;
-		x = aX;
-		y = aY;
-		z = aZ;
-		timestamp = [aTimestamp retain];
+		_magneticHeading = aMagneticHeading;
+		_trueHeading = aTrueHeading;
+		_headingAccuracy = aAccuracy;
+		_x = aX;
+		_y = aY;
+		_z = aZ;
+        _timestamp = [aTimestamp copy];
 	}
 	
 	return self;
 }
 
 
-- (void)dealloc
-{
-	[timestamp release];
-	[super dealloc];
-}
-
-
 - (id)copyWithZone:(NSZone*)aZone
 {
-	APHeading* headingCopy = [[[self class] allocWithZone:aZone] init];
-	if ( headingCopy )
+    APHeading* headingCopy = [APHeading new];
+	if (headingCopy)
 	{
-		headingCopy->magneticHeading = magneticHeading;
-		headingCopy->trueHeading = trueHeading;
-		headingCopy->headingAccuracy = headingAccuracy;
-		headingCopy->x = x;
-		headingCopy->y = y;
-		headingCopy->z = z;
-		headingCopy->timestamp = [timestamp retain];
+		headingCopy.magneticHeading = self.magneticHeading;
+		headingCopy.trueHeading = self.trueHeading;
+		headingCopy.headingAccuracy = self.headingAccuracy;
+		headingCopy.x = self.x;
+		headingCopy.y = self.y;
+		headingCopy.z = self.z;
+        headingCopy.timestamp = [self.timestamp copy];
 	}
 	
 	return headingCopy;
@@ -94,14 +77,9 @@ NSString* const kAPHeadingDescriptionFormat = @"magneticHeading %3.2f trueHeadin
 
 - (id)initWithCoder:(NSCoder*)aDecoder
 {
-	if ( (self = [super init]) )
-	{
-		[NSException raise:NSInvalidUnarchiveOperationException
-					format:@"APHeading unarchiving not implemented"];
-		// TODO: implementation
-	}
-	
-	return self;
+    [NSException raise:NSInvalidUnarchiveOperationException
+                format:@"APHeading unarchiving not implemented"];
+	return nil;
 }
 
 

@@ -16,39 +16,29 @@
 
 @interface ViewController () <APAstralProjectionDelegate, CLLocationManagerDelegate>
 {
-	CLLocationManager* locMgr;
-	BOOL isUpdatingLocation;
-	BOOL isDataSourceActive;
-	id<APLocationDataSource> locationDataSource;
+	CLLocationManager* _locMgr;
+	BOOL _isUpdatingLocation;
+	BOOL _isDataSourceActive;
+	id<APLocationDataSource> _locationDataSource;
 }
 
-@property (assign, nonatomic) IBOutlet MKMapView *mapView;
-@property (assign, nonatomic) IBOutlet UILabel *latLabel;
-@property (assign, nonatomic) IBOutlet UILabel *longLabel;
-@property (assign, nonatomic) IBOutlet UILabel *altLabel;
-@property (assign, nonatomic) IBOutlet UILabel *magHeadLabel;
-@property (assign, nonatomic) IBOutlet UILabel *trueHeadLabel;
-@property (assign, nonatomic) IBOutlet UIButton *datasourceButton;
-@property (assign, nonatomic) IBOutlet UIButton *updateButton;
+@property (nonatomic, weak) IBOutlet MKMapView *mapView;
+@property (nonatomic, weak) IBOutlet UILabel *latLabel;
+@property (nonatomic, weak) IBOutlet UILabel *longLabel;
+@property (nonatomic, weak) IBOutlet UILabel *altLabel;
+@property (nonatomic, weak) IBOutlet UILabel *magHeadLabel;
+@property (nonatomic, weak) IBOutlet UILabel *trueHeadLabel;
+@property (nonatomic, weak) IBOutlet UIButton *datasourceButton;
+@property (nonatomic, weak) IBOutlet UIButton *updateButton;
 
 @end
 
 @implementation ViewController
 
-@synthesize mapView;
-@synthesize latLabel;
-@synthesize longLabel;
-@synthesize altLabel;
-@synthesize magHeadLabel;
-@synthesize trueHeadLabel;
-@synthesize datasourceButton;
-@synthesize updateButton;
-
-
 - (id)initWithNibName:(NSString *)nibNameOrNil bundle:(NSBundle *)nibBundleOrNil
 {
 	self = [super initWithNibName:nibNameOrNil bundle:nibBundleOrNil];
-	if ( self != nil )
+	if (self)
 	{
 		/*/
 		APGPXDataSource* gpx = [[[APGPXDataSource alloc] initWithURL:
@@ -63,26 +53,19 @@
 
 		/*/
 		
-		APAgentDataSource* agent = [[[APAgentDataSource alloc] initWithUdpPort:0x1234] autorelease];
-		locationDataSource = [agent retain];
+		APAgentDataSource* agent = [[APAgentDataSource alloc] initWithUDPPort:0x1234];
+		_locationDataSource = agent;
 		[APAstralProjection sharedInstance].locationDataSource = agent;
 		
 		//*/
 
 		[APAstralProjection sharedInstance].delegate = self;
 		
-		locMgr = [[CLLocationManager alloc] init];
-		locMgr.delegate = self;
+		_locMgr = [CLLocationManager new];
+		_locMgr.delegate = self;
 	}
 	
 	return self;
-}
-
-
-- (void)dealloc
-{
-	[locationDataSource release];
-	[super dealloc];
 }
 
 
@@ -90,56 +73,42 @@
 {
     [super viewDidLoad];
 	
-	mapView.showsUserLocation = YES;
-	mapView.userTrackingMode = MKUserTrackingModeFollowWithHeading;
-}
-
-
-- (void)viewDidUnload
-{
-	[self setMapView:nil];
-	[self setLatLabel:nil];
-	[self setLongLabel:nil];
-	[self setAltLabel:nil];
-	[self setMagHeadLabel:nil];
-	[self setTrueHeadLabel:nil];
-	[self setDatasourceButton:nil];
-	[self setUpdateButton:nil];
-	[super viewDidUnload];
+	_mapView.showsUserLocation = YES;
+	_mapView.userTrackingMode = MKUserTrackingModeFollowWithHeading;
 }
 
 
 - (IBAction)datasourceButtonTapped:(id)sender
 {
-	if ( !isDataSourceActive )
+	if (!_isDataSourceActive)
 	{
-		[datasourceButton setTitle:@"Stop datasource" forState:UIControlStateNormal];
+		[_datasourceButton setTitle:@"Stop datasource" forState:UIControlStateNormal];
 		[[APAstralProjection sharedInstance].locationDataSource startGeneratingLocationEvents];
 	}
 	else
 	{
-		[datasourceButton setTitle:@"Restart datasource" forState:UIControlStateNormal];
+		[_datasourceButton setTitle:@"Restart datasource" forState:UIControlStateNormal];
 		[[APAstralProjection sharedInstance].locationDataSource stopGeneratingLocationEvents];
 	}
 	
-	isDataSourceActive = !isDataSourceActive;
+	_isDataSourceActive = !_isDataSourceActive;
 }
 
 
 - (IBAction)updateButtonTapped:(id)sender
 {
-	if ( !isUpdatingLocation )
+	if (!_isUpdatingLocation)
 	{
-		[updateButton setTitle:@"Stop updates" forState:UIControlStateNormal];
-		[locMgr startUpdatingLocation];
+		[_updateButton setTitle:@"Stop updates" forState:UIControlStateNormal];
+		[_locMgr startUpdatingLocation];
 	}
 	else
 	{
-		[updateButton setTitle:@"Start updates" forState:UIControlStateNormal];
-		[locMgr stopUpdatingLocation];
+		[_updateButton setTitle:@"Start updates" forState:UIControlStateNormal];
+		[_locMgr stopUpdatingLocation];
 	}
 	
-	isUpdatingLocation = !isUpdatingLocation;
+	_isUpdatingLocation = !_isUpdatingLocation;
 }
 
 
@@ -164,9 +133,9 @@
 	didUpdateToLocation:(CLLocation *)newLocation
 		   fromLocation:(CLLocation *)oldLocation
 {
-	latLabel.text = [NSString stringWithFormat:@"%3.5f",newLocation.coordinate.latitude];
-	longLabel.text = [NSString stringWithFormat:@"%3.5f",newLocation.coordinate.longitude];
-	altLabel.text = [NSString stringWithFormat:@"%4.2f",newLocation.altitude];
+	_latLabel.text = [NSString stringWithFormat:@"%3.5f",newLocation.coordinate.latitude];
+	_longLabel.text = [NSString stringWithFormat:@"%3.5f",newLocation.coordinate.longitude];
+	_altLabel.text = [NSString stringWithFormat:@"%4.2f",newLocation.altitude];
 }
 
 
@@ -179,8 +148,8 @@
 - (void)locationManager:(CLLocationManager *)manager
 	   didUpdateHeading:(CLHeading *)newHeading
 {
-	magHeadLabel.text = [NSString stringWithFormat:@"%3.2f",newHeading.magneticHeading];
-	trueHeadLabel.text = [NSString stringWithFormat:@"%3.2f",newHeading.trueHeading];
+	_magHeadLabel.text = [NSString stringWithFormat:@"%3.2f",newHeading.magneticHeading];
+	_trueHeadLabel.text = [NSString stringWithFormat:@"%3.2f",newHeading.trueHeading];
 }
 
 

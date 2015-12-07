@@ -57,32 +57,29 @@ typedef enum
 
 
 
-@interface APGPXParser ()
+@interface APGPXParser () <NSXMLParserDelegate>
 {
 	/// accumulator of the character (=non-element) data within an element
-	NSMutableString* outstandingCharacters;
+	NSMutableString* _outstandingCharacters;
 	
-	NSMutableDictionary* outstandingPoint;
+	NSMutableDictionary* _outstandingPoint;
 	
 	/// current levels of parsing
-	GPXParsingLevel parsingLevel;
-	GPXPointParsingLevel pointParsingLevel;
-	
-	NSMutableArray* waypoints;
-	NSMutableArray* routes;
-	NSMutableArray* tracks;
+	GPXParsingLevel _parsingLevel;
+	GPXPointParsingLevel _pointParsingLevel;
+    
+    NSMutableArray* _waypoints;
+    NSMutableArray* _routes;
+    NSMutableArray* _tracks;
 }
-
-- (void)parseURL:(NSURL*)aUrl;
 
 @end
 
 
 
-NSInteger GPXPointSortByTimestampAsc( id aLeft, id aRight, void* aContext )
+NSInteger GPXPointSortByTimestampAsc(NSDictionary* aLeft, NSDictionary* aRight, void* aContext)
 {
-	NSTimeInterval delta = [[aLeft objectForKey:kGPXPointTime]
-							timeIntervalSinceDate:[aRight objectForKey:kGPXPointTime]];
+	NSTimeInterval delta = [aLeft[kGPXPointTime] timeIntervalSinceDate:aRight[kGPXPointTime]];
 	return (delta < 0)? NSOrderedAscending: ((delta > 0)? NSOrderedDescending: NSOrderedSame);
 }
 
@@ -99,58 +96,40 @@ NSInteger GPXTrackSegmentSortByTimestampAsc( id aLeft, id aRight, void* aContext
 
 @implementation APGPXParser
 
-@synthesize waypoints, routes, tracks;
 
-
-// -----------------------------------------------------------------------------
-// APGPXParser::initWithURL:
-// -----------------------------------------------------------------------------
-- (id)initWithURL:(NSURL*)aUrl
+- (instancetype)initWithContentsOfURL:(NSURL*)aURL
 {
-	if ( (self = [super init]) )
+    NSParameterAssert(aURL);
+    self = [super init];
+	if (self)
 	{
-		waypoints = [[NSMutableArray alloc] init];
-		routes = [[NSMutableArray alloc] init];
-		tracks = [[NSMutableArray alloc] init];
+		_waypoints = [NSMutableArray new];
+		_routes = [NSMutableArray new];
+		_tracks = [NSMutableArray new];
 
-		[self parseURL:aUrl];
+		[self parseFileAtURL:aURL];
 	}
 	
 	return self;
 }
 
 
-// -----------------------------------------------------------------------------
-// APGPXParser::dealloc
-// -----------------------------------------------------------------------------
-- (void)dealloc
+- (void)parseFileAtURL:(NSURL*)aURL
 {
-	[waypoints release];
-	[routes release];
-	[tracks release];
-	[super dealloc];
-}
-
-
-// -----------------------------------------------------------------------------
-// APGPXParser::parseURL:
-// -----------------------------------------------------------------------------
-- (void)parseURL:(NSURL*)aUrl
-{
-	NSXMLParser* parser = [[NSXMLParser alloc] initWithContentsOfURL:aUrl];
-	[parser setDelegate:self];
-	[parser setShouldProcessNamespaces:YES];
-	[parser setShouldReportNamespacePrefixes:NO];
-	[parser setShouldResolveExternalEntities:NO];
+	NSXMLParser* parser = [[NSXMLParser alloc] initWithContentsOfURL:aURL];
+    parser.delegate = self;
+    parser.shouldProcessNamespaces = YES;
+    parser.shouldReportNamespacePrefixes = YES;
+    parser.shouldResolveExternalEntities = YES;
 	
 	// initialize variables
-	[waypoints removeAllObjects];
-	[routes removeAllObjects];
-	[tracks removeAllObjects];
+	[_waypoints removeAllObjects];
+	[_routes removeAllObjects];
+	[_tracks removeAllObjects];
 	
-	outstandingCharacters = nil;
-	parsingLevel = kGPXParsingLevelDocument;
-	pointParsingLevel = kGPXPointParsingLevelNone;
+	_outstandingCharacters = nil;
+	_parsingLevel = kGPXParsingLevelDocument;
+	_pointParsingLevel = kGPXPointParsingLevelNone;
 	
 	// perform parsing
 	[parser parse];
@@ -159,22 +138,20 @@ NSInteger GPXTrackSegmentSortByTimestampAsc( id aLeft, id aRight, void* aContext
     NSError* parseError = [parser parserError];
     if (parseError) 
 	{
-		[waypoints removeAllObjects];
-		[routes removeAllObjects];
-		[tracks removeAllObjects];
+		[_waypoints removeAllObjects];
+		[_routes removeAllObjects];
+		[_tracks removeAllObjects];
     }
 	
-	[parser release];
-	
 	// cleanup, sorting, etc
-	[waypoints sortUsingFunction:GPXPointSortByTimestampAsc context:NULL];	
+	[_waypoints sortUsingFunction:GPXPointSortByTimestampAsc context:NULL];
 	
-	for ( NSMutableArray* route in routes )
+	for (NSMutableArray* route in _routes)
 	{
-		if ( ![route count] )
+		if (route.count == 0)
 		{
 			// don't add empty routes
-			[routes removeObject:route];
+			[_routes removeObject:route];
 		}
 		else
 		{
@@ -182,11 +159,11 @@ NSInteger GPXTrackSegmentSortByTimestampAsc( id aLeft, id aRight, void* aContext
 		}
 	}
 	
-	for ( NSMutableArray* track in tracks )
+	for (NSMutableArray* track in _tracks)
 	{
-		for ( NSMutableArray* segment in track )
+		for (NSMutableArray* segment in track)
 		{
-			if ( ![segment count] )
+			if (segment.count == 0)
 			{
 				// don't add empty segments
 				[track removeObject:segment];
@@ -197,29 +174,23 @@ NSInteger GPXTrackSegmentSortByTimestampAsc( id aLeft, id aRight, void* aContext
 			}
 		}
 		
-		if ( ![track count] )
+		if (track.count == 0)
 		{
 			// don't add empty tracks
-			[tracks removeObject:track];
+			[_tracks removeObject:track];
 		}
 		else
 		{
 			[track sortUsingFunction:GPXTrackSegmentSortByTimestampAsc context:NULL];
 		}
-
 	}
 }
 
 
-
-#pragma mark -
-#pragma mark from NSXMLParserDelegate:
+#pragma mark - from NSXMLParserDelegate:
 
 
-// -----------------------------------------------------------------------------
-// APGPXParser::parser:didStartElement:namespaceURI:qualifiedName:attributes:
-// -----------------------------------------------------------------------------
-- (void)parser:(NSXMLParser*)aParser didStartElement:(NSString*)aElementName 
+- (void)parser:(NSXMLParser*)aParser didStartElement:(NSString*)aElementName
   namespaceURI:(NSString*)aNamespaceURI qualifiedName:(NSString*)aQfdName 
 	attributes:(NSDictionary*)aAttributes
 {
@@ -227,14 +198,14 @@ NSInteger GPXTrackSegmentSortByTimestampAsc( id aLeft, id aRight, void* aContext
 	
 	BOOL bypassPointParser = NO;
 	
-	switch ( parsingLevel )
+	switch (_parsingLevel)
 	{
 		case kGPXParsingLevelDocument:
 		{
-			if ( [aElementName isEqualToString:kGPXElemRoot] )
+			if ([aElementName isEqualToString:kGPXElemRoot])
 			{
-				if ( ![aNamespaceURI isEqualToString:kGPX10NamespaceURI] &&
-					 ![aNamespaceURI isEqualToString:kGPX11NamespaceURI] )
+				if (![aNamespaceURI isEqualToString:kGPX10NamespaceURI] &&
+					![aNamespaceURI isEqualToString:kGPX11NamespaceURI])
 				{
 					// unknown format
 					[NSException raise:@"GPXParserException" format:@"unsupported GPX version"];
@@ -242,105 +213,99 @@ NSInteger GPXTrackSegmentSortByTimestampAsc( id aLeft, id aRight, void* aContext
 				}
 				
 				// GPX body starts
-				parsingLevel = kGPXParsingLevelBody;
+				_parsingLevel = kGPXParsingLevelBody;
 			}
 			break;
 		}
 			
 		case kGPXParsingLevelBody:
 		{
-			if ( [aElementName isEqualToString:kGPXElemWaypoint] )
+			if ([aElementName isEqualToString:kGPXElemWaypoint])
 			{
 				// waypoint starts
-				pointParsingLevel = kGPXPointParsingLevelBase;
+				_pointParsingLevel = kGPXPointParsingLevelBase;
 				bypassPointParser = YES;
 				
-				outstandingPoint = [[NSMutableDictionary alloc] initWithObjectsAndKeys:
-									[aAttributes objectForKey:kGPXAttrPointLatitude], kGPXPointLatitude,
-									[aAttributes objectForKey:kGPXAttrPointLongitude], kGPXPointLongitude,
-									nil];
+                _outstandingPoint = [@{kGPXPointLatitude: aAttributes[kGPXAttrPointLatitude],
+                                       kGPXPointLongitude: aAttributes[kGPXAttrPointLongitude]} mutableCopy];
 			}
-			else if ( [aElementName isEqualToString:kGPXElemRoute] )
+			else if ([aElementName isEqualToString:kGPXElemRoute])
 			{
 				// route section starts
-				parsingLevel = kGPXParsingLevelRoute;
+				_parsingLevel = kGPXParsingLevelRoute;
 				
-				[routes addObject:[NSMutableArray array]];
+				[_routes addObject:[NSMutableArray array]];
 			}
-			else if ( [aElementName isEqualToString:kGPXElemTrack] )
+			else if ([aElementName isEqualToString:kGPXElemTrack])
 			{
 				// track section starts
-				parsingLevel = kGPXParsingLevelTrack;
+				_parsingLevel = kGPXParsingLevelTrack;
 
-				[tracks addObject:[NSMutableArray array]];
+				[_tracks addObject:[NSMutableArray array]];
 			}
 			break;
 		}
 
 		case kGPXParsingLevelRoute:
 		{
-			if ( [aElementName isEqualToString:kGPXElemRoutePoint] )
+			if ([aElementName isEqualToString:kGPXElemRoutePoint])
 			{
 				// waypoint starts
-				pointParsingLevel = kGPXPointParsingLevelBase;
+				_pointParsingLevel = kGPXPointParsingLevelBase;
 				bypassPointParser = YES;
 				
-				outstandingPoint = [[NSMutableDictionary alloc] initWithObjectsAndKeys:
-									[aAttributes objectForKey:kGPXAttrPointLatitude], kGPXPointLatitude,
-									[aAttributes objectForKey:kGPXAttrPointLongitude], kGPXPointLongitude,
-									nil];
+                _outstandingPoint = [@{kGPXPointLatitude: aAttributes[kGPXAttrPointLatitude],
+                                       kGPXPointLongitude: aAttributes[kGPXAttrPointLongitude]} mutableCopy];
 			}
 			break;
 		}
 		
 		case kGPXParsingLevelTrack:
 		{
-			if ( [aElementName isEqualToString:kGPXElemTrackSegment] )
+			if ([aElementName isEqualToString:kGPXElemTrackSegment])
 			{
 				// track segment starts
-				parsingLevel = kGPXParsingLevelTrackSegment;
+				_parsingLevel = kGPXParsingLevelTrackSegment;
 
-				[[tracks lastObject] addObject:[NSMutableArray array]];
+				[_tracks.lastObject addObject:[NSMutableArray array]];
 			}			
 			break;
 		}
 		
 		case kGPXParsingLevelTrackSegment:
 		{
-			if ( [aElementName isEqualToString:kGPXElemTrackPoint] )
+			if ([aElementName isEqualToString:kGPXElemTrackPoint])
 			{
 				// waypoint starts
-				pointParsingLevel = kGPXPointParsingLevelBase;
+				_pointParsingLevel = kGPXPointParsingLevelBase;
 				bypassPointParser = YES;
 				
-				outstandingPoint = [[NSMutableDictionary alloc] initWithObjectsAndKeys:
-									[aAttributes objectForKey:kGPXAttrPointLatitude], kGPXPointLatitude,
-									[aAttributes objectForKey:kGPXAttrPointLongitude], kGPXPointLongitude,
-									nil];
+                _outstandingPoint = [@{kGPXPointLatitude: aAttributes[kGPXAttrPointLatitude],
+                                       kGPXPointLongitude: aAttributes[kGPXAttrPointLongitude]} mutableCopy];
 			}
 			break;
 		}
 	}
 
-	if ( !bypassPointParser )
+	if (!bypassPointParser)
 	{
-		switch ( pointParsingLevel )
+		switch (_pointParsingLevel)
 		{
 			case kGPXPointParsingLevelBase:
 			{
-				if ( [aElementName isEqualToString:kGPXElemPointTime] )
+				if ([aElementName isEqualToString:kGPXElemPointTime])
 				{
-					pointParsingLevel = kGPXPointParsingLevelTime;
+					_pointParsingLevel = kGPXPointParsingLevelTime;
 					
 					// prepare to accept character data
-					outstandingCharacters = [[NSMutableString alloc] init];
+					_outstandingCharacters = [NSMutableString new];
 				}
-				else if ( [aElementName isEqualToString:kGPXElemPointElevation] )
+				else if ([aElementName isEqualToString:kGPXElemPointElevation])
 				{
-					pointParsingLevel = kGPXPointParsingLevelElevation;
+					_pointParsingLevel = kGPXPointParsingLevelElevation;
 					
 					// prepare to accept character data
-					outstandingCharacters = [[NSMutableString alloc] init];
+					_outstandingCharacters = [NSMutableString new];
 				}				
 				break;
 			}
@@ -354,15 +319,12 @@ NSInteger GPXTrackSegmentSortByTimestampAsc( id aLeft, id aRight, void* aContext
 }
 
 
-// -----------------------------------------------------------------------------
-// APGPXParser::parser:didEndElement:namespaceURI:qualifiedName:
-// -----------------------------------------------------------------------------
-- (void)parser:(NSXMLParser*)aParser didEndElement:(NSString*)aElementName 
-  namespaceURI:(NSString*)aNamespaceURI qualifiedName:(NSString*)aQfdName
+- (void)parser:(NSXMLParser*)aParser didEndElement:(NSString*)aElementName
+    namespaceURI:(NSString*)aNamespaceURI qualifiedName:(NSString*)aQfdName
 {
 	BOOL bypassPointParsing = NO;
 	
-	switch ( parsingLevel )
+	switch (_parsingLevel)
 	{
 		case kGPXParsingLevelDocument:
 		{
@@ -372,9 +334,9 @@ NSInteger GPXTrackSegmentSortByTimestampAsc( id aLeft, id aRight, void* aContext
 
 		case kGPXParsingLevelBody:
 		{
-			if ( [aElementName isEqualToString:kGPXElemRoot] )
+			if ([aElementName isEqualToString:kGPXElemRoot])
 			{
-				parsingLevel = kGPXParsingLevelDocument;
+				_parsingLevel = kGPXParsingLevelDocument;
 				bypassPointParsing = YES;
 			}
 			break;
@@ -382,9 +344,9 @@ NSInteger GPXTrackSegmentSortByTimestampAsc( id aLeft, id aRight, void* aContext
 			
 		case kGPXParsingLevelRoute:
 		{
-			if ( [aElementName isEqualToString:kGPXElemRoute] )
+			if ([aElementName isEqualToString:kGPXElemRoute])
 			{
-				parsingLevel = kGPXParsingLevelBody;
+				_parsingLevel = kGPXParsingLevelBody;
 				bypassPointParsing = YES;
 			}
 			break;
@@ -392,9 +354,9 @@ NSInteger GPXTrackSegmentSortByTimestampAsc( id aLeft, id aRight, void* aContext
 			
 		case kGPXParsingLevelTrack:
 		{
-			if ( [aElementName isEqualToString:kGPXElemTrack] )
+			if ([aElementName isEqualToString:kGPXElemTrack])
 			{
-				parsingLevel = kGPXParsingLevelBody;
+				_parsingLevel = kGPXParsingLevelBody;
 				bypassPointParsing = YES;
 			}
 			break;
@@ -402,93 +364,81 @@ NSInteger GPXTrackSegmentSortByTimestampAsc( id aLeft, id aRight, void* aContext
 			
 		case kGPXParsingLevelTrackSegment:
 		{
-			if ( [aElementName isEqualToString:kGPXElemTrackSegment] )
+			if ([aElementName isEqualToString:kGPXElemTrackSegment])
 			{
-				parsingLevel = kGPXParsingLevelTrack;
+				_parsingLevel = kGPXParsingLevelTrack;
 				bypassPointParsing = YES;
 			}
 			break;
 		}
 	}
 	
-	if ( !bypassPointParsing )
+	if (!bypassPointParsing)
 	{
-		switch ( pointParsingLevel )
+		switch (_pointParsingLevel)
 		{
 			case kGPXPointParsingLevelBase:
 			{
-				if ( parsingLevel == kGPXParsingLevelBody && 
-					 [aElementName isEqualToString:kGPXElemWaypoint] )
+				if (_parsingLevel == kGPXParsingLevelBody &&
+                    [aElementName isEqualToString:kGPXElemWaypoint])
 				{
 					// waypoint closed
-					[waypoints addObject:outstandingPoint];
+					[_waypoints addObject:_outstandingPoint];
+					_outstandingPoint = nil;
 					
-					[outstandingPoint release];
-					outstandingPoint = nil;
-					
-					pointParsingLevel = kGPXPointParsingLevelNone;
+					_pointParsingLevel = kGPXPointParsingLevelNone;
 				}
-				else if ( parsingLevel == kGPXParsingLevelRoute &&
-						  [aElementName isEqualToString:kGPXElemRoutePoint] )
+				else if (_parsingLevel == kGPXParsingLevelRoute &&
+						 [aElementName isEqualToString:kGPXElemRoutePoint])
 				{
 					// route point closed
-					[[routes lastObject] addObject:outstandingPoint];
-					
-					[outstandingPoint release];
-					outstandingPoint = nil;
+					[_routes.lastObject addObject:_outstandingPoint];
+					_outstandingPoint = nil;
 
-					pointParsingLevel = kGPXPointParsingLevelNone;
+					_pointParsingLevel = kGPXPointParsingLevelNone;
 				}
-				else if ( parsingLevel == kGPXParsingLevelTrackSegment &&
-						  [aElementName isEqualToString:kGPXElemTrackPoint] )
+				else if (_parsingLevel == kGPXParsingLevelTrackSegment &&
+						 [aElementName isEqualToString:kGPXElemTrackPoint])
 				{
 					// track point closed
-					[[[tracks lastObject] lastObject] addObject:outstandingPoint];
+					[[_tracks.lastObject lastObject] addObject:_outstandingPoint];
+					_outstandingPoint = nil;
 
-					[outstandingPoint release];
-					outstandingPoint = nil;
-
-					pointParsingLevel = kGPXPointParsingLevelNone;
+					_pointParsingLevel = kGPXPointParsingLevelNone;
 				}
 				break;
 			}
 			
 			case kGPXPointParsingLevelTime:
 			{
-				if ( [aElementName isEqualToString:kGPXElemPointTime] )
+				if ([aElementName isEqualToString:kGPXElemPointTime])
 				{
 					// time tag closed
-					pointParsingLevel = kGPXPointParsingLevelBase;
+					_pointParsingLevel = kGPXPointParsingLevelBase;
 					
-					NSDateFormatter* dateFmt = [[NSDateFormatter alloc] init];
-					[dateFmt setDateFormat:kGPXDateFormat];
-					NSDate* pointTime = [dateFmt dateFromString:outstandingCharacters];
-					[dateFmt release];
+					NSDateFormatter* dateFmt = [NSDateFormatter new];
+                    dateFmt.dateFormat = kGPXDateFormat;
+					NSDate* pointTime = [dateFmt dateFromString:_outstandingCharacters];
 					
-					[outstandingPoint setObject:pointTime forKey:kGPXPointTime];
-					
-					[outstandingCharacters release];
-					outstandingCharacters = nil;
+                    _outstandingPoint[kGPXPointTime] = pointTime;
+					_outstandingCharacters = nil;
 				}
 				break;
 			}
 
 			case kGPXPointParsingLevelElevation:
 			{
-				if ( [aElementName isEqualToString:kGPXElemPointElevation] )
+				if ([aElementName isEqualToString:kGPXElemPointElevation])
 				{
 					// time tag closed
-					pointParsingLevel = kGPXPointParsingLevelBase;
+					_pointParsingLevel = kGPXPointParsingLevelBase;
 					
-					NSScanner* scanner = [NSScanner scannerWithString:outstandingCharacters];
+					NSScanner* scanner = [NSScanner scannerWithString:_outstandingCharacters];
 					double value = 0;
 					[scanner scanDouble:&value];
 					
-					[outstandingPoint setObject:[NSNumber numberWithDouble:value]
-										 forKey:kGPXPointAltitude];
-					
-					[outstandingCharacters release];
-					outstandingCharacters = nil;
+                    _outstandingPoint[kGPXPointAltitude] = @(value);
+					_outstandingCharacters = nil;
 				}
 				break;
 			}
@@ -504,17 +454,13 @@ NSInteger GPXTrackSegmentSortByTimestampAsc( id aLeft, id aRight, void* aContext
 }
 
 
-// -----------------------------------------------------------------------------
-// APGPXParser::parser:foundCharacters:
-// -----------------------------------------------------------------------------
 - (void)parser:(NSXMLParser*)aParser foundCharacters:(NSString*)aString
 {
 //	printf("\"%s\"\n",[aString cStringUsingEncoding:NSUTF8StringEncoding]);
 	
 	// simply append the new characters into the accumulation buffer
-	[outstandingCharacters appendString:aString];
+	[_outstandingCharacters appendString:aString];
 }
-
 
 
 @end

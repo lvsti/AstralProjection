@@ -13,7 +13,7 @@
 
 @protocol APHeadingDataSource <NSObject>
 
-@property (nonatomic, assign) id<APHeadingDataDelegate> headingDataDelegate;
+@property (nonatomic, weak) id<APHeadingDataDelegate> headingDataDelegate;
 
 /**
  * Kicks off the heading data source.

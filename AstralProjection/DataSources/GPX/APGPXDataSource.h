@@ -9,22 +9,22 @@
 #import "APLocationDataSource.h"
 
 
-typedef enum
+typedef NS_ENUM(NSUInteger, APGPXDataSet)
 {
 	kAPGPXDataSetWaypoint,
 	kAPGPXDataSetRoute,
 	kAPGPXDataSetTrack
-} APGPXDataSet;
+};
 
 
 @interface APGPXDataSource : NSObject <APLocationDataSource>
 
 @property (nonatomic, assign) double timeScale;
 @property (nonatomic, assign) NSTimeInterval eventFrequency;
-@property (nonatomic, assign) id<APLocationDataDelegate> locationDataDelegate;
+@property (nonatomic, weak) id<APLocationDataDelegate> locationDataDelegate;
 @property (nonatomic, assign) BOOL autorepeat;
 
-- (id)initWithURL:(NSURL*)aUrl;
+- (id)initWithContentsOfURL:(NSURL*)aURL;
 
 - (NSUInteger)cardinalityForDataSet:(APGPXDataSet)aDataSet;
 - (void)setActiveDataSet:(APGPXDataSet)aDataSet subsetIndex:(NSUInteger)aIndex;

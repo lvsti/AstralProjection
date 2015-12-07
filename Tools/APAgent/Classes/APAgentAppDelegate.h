@@ -7,16 +7,7 @@
 
 #import <UIKit/UIKit.h>
 
-@class APAgentViewController;
-
 @interface APAgentAppDelegate : NSObject <UIApplicationDelegate>
-{
-    UIWindow *window;
-    APAgentViewController *viewController;
-}
-
-@property (nonatomic, retain) IBOutlet UIWindow *window;
-@property (nonatomic, retain) IBOutlet APAgentViewController *viewController;
-
+@property (nonatomic, strong) IBOutlet UIWindow *window;
 @end
 

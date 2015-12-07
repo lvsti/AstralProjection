@@ -20,12 +20,6 @@
 		E85CBA5A179837FA00AE58A3 /* CoreLocation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E85CBA59179837FA00AE58A3 /* CoreLocation.framework */; };
 		E85CBA5E17984C1B00AE58A3 /* APAstralProjection.m in Sources */ = {isa = PBXBuildFile; fileRef = E85CBA5D17984C1B00AE58A3 /* APAstralProjection.m */; };
 		E8AAE45C1799CDE1006C41CD /* APAgentDataSource.m in Sources */ = {isa = PBXBuildFile; fileRef = E8AAE45B1799CDE1006C41CD /* APAgentDataSource.m */; };
-		E8AAE46B1799CDF5006C41CD /* NSObject+SBJSON.m in Sources */ = {isa = PBXBuildFile; fileRef = E8AAE4601799CDF5006C41CD /* NSObject+SBJSON.m */; };
-		E8AAE46C1799CDF5006C41CD /* NSString+SBJSON.m in Sources */ = {isa = PBXBuildFile; fileRef = E8AAE4621799CDF5006C41CD /* NSString+SBJSON.m */; };
-		E8AAE46D1799CDF5006C41CD /* SBJSON.m in Sources */ = {isa = PBXBuildFile; fileRef = E8AAE4641799CDF5006C41CD /* SBJSON.m */; };
-		E8AAE46E1799CDF5006C41CD /* SBJsonBase.m in Sources */ = {isa = PBXBuildFile; fileRef = E8AAE4661799CDF5006C41CD /* SBJsonBase.m */; };
-		E8AAE46F1799CDF5006C41CD /* SBJsonParser.m in Sources */ = {isa = PBXBuildFile; fileRef = E8AAE4681799CDF5006C41CD /* SBJsonParser.m */; };
-		E8AAE4701799CDF5006C41CD /* SBJsonWriter.m in Sources */ = {isa = PBXBuildFile; fileRef = E8AAE46A1799CDF5006C41CD /* SBJsonWriter.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -59,19 +53,6 @@
 		E85CBA5D17984C1B00AE58A3 /* APAstralProjection.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = APAstralProjection.m; sourceTree = "<group>"; };
 		E8AAE45A1799CDE1006C41CD /* APAgentDataSource.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = APAgentDataSource.h; sourceTree = "<group>"; };
 		E8AAE45B1799CDE1006C41CD /* APAgentDataSource.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = APAgentDataSource.m; sourceTree = "<group>"; };
-		E8AAE45E1799CDF5006C41CD /* JSON.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = JSON.h; sourceTree = "<group>"; };
-		E8AAE45F1799CDF5006C41CD /* NSObject+SBJSON.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "NSObject+SBJSON.h"; sourceTree = "<group>"; };
-		E8AAE4601799CDF5006C41CD /* NSObject+SBJSON.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "NSObject+SBJSON.m"; sourceTree = "<group>"; };
-		E8AAE4611799CDF5006C41CD /* NSString+SBJSON.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "NSString+SBJSON.h"; sourceTree = "<group>"; };
-		E8AAE4621799CDF5006C41CD /* NSString+SBJSON.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "NSString+SBJSON.m"; sourceTree = "<group>"; };
-		E8AAE4631799CDF5006C41CD /* SBJSON.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SBJSON.h; sourceTree = "<group>"; };
-		E8AAE4641799CDF5006C41CD /* SBJSON.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SBJSON.m; sourceTree = "<group>"; };
-		E8AAE4651799CDF5006C41CD /* SBJsonBase.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SBJsonBase.h; sourceTree = "<group>"; };
-		E8AAE4661799CDF5006C41CD /* SBJsonBase.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SBJsonBase.m; sourceTree = "<group>"; };
-		E8AAE4671799CDF5006C41CD /* SBJsonParser.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SBJsonParser.h; sourceTree = "<group>"; };
-		E8AAE4681799CDF5006C41CD /* SBJsonParser.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SBJsonParser.m; sourceTree = "<group>"; };
-		E8AAE4691799CDF5006C41CD /* SBJsonWriter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SBJsonWriter.h; sourceTree = "<group>"; };
-		E8AAE46A1799CDF5006C41CD /* SBJsonWriter.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SBJsonWriter.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -90,7 +71,6 @@
 		E85CBA0B179837BF00AE58A3 = {
 			isa = PBXGroup;
 			children = (
-				E8AAE45D1799CDF5006C41CD /* JSON */,
 				E85CBA37179837EE00AE58A3 /* AstralProjection */,
 				E85CBA34179837DD00AE58A3 /* Resources */,
 				E85CBA1D179837BF00AE58A3 /* APDesktopHost */,
@@ -214,27 +194,6 @@
 			path = Agent;
 			sourceTree = "<group>";
 		};
-		E8AAE45D1799CDF5006C41CD /* JSON */ = {
-			isa = PBXGroup;
-			children = (
-				E8AAE45E1799CDF5006C41CD /* JSON.h */,
-				E8AAE45F1799CDF5006C41CD /* NSObject+SBJSON.h */,
-				E8AAE4601799CDF5006C41CD /* NSObject+SBJSON.m */,
-				E8AAE4611799CDF5006C41CD /* NSString+SBJSON.h */,
-				E8AAE4621799CDF5006C41CD /* NSString+SBJSON.m */,
-				E8AAE4631799CDF5006C41CD /* SBJSON.h */,
-				E8AAE4641799CDF5006C41CD /* SBJSON.m */,
-				E8AAE4651799CDF5006C41CD /* SBJsonBase.h */,
-				E8AAE4661799CDF5006C41CD /* SBJsonBase.m */,
-				E8AAE4671799CDF5006C41CD /* SBJsonParser.h */,
-				E8AAE4681799CDF5006C41CD /* SBJsonParser.m */,
-				E8AAE4691799CDF5006C41CD /* SBJsonWriter.h */,
-				E8AAE46A1799CDF5006C41CD /* SBJsonWriter.m */,
-			);
-			name = JSON;
-			path = ../../ThirdParty/JSON;
-			sourceTree = "<group>";
-		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -261,7 +220,7 @@
 		E85CBA0C179837BF00AE58A3 /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastUpgradeCheck = 0460;
+				LastUpgradeCheck = 0710;
 				ORGANIZATIONNAME = "LKXF Studios";
 			};
 			buildConfigurationList = E85CBA0F179837BF00AE58A3 /* Build configuration list for PBXProject "APDesktopHost" */;
@@ -305,12 +264,6 @@
 				E85CBA56179837EE00AE58A3 /* APGPXParser.m in Sources */,
 				E85CBA5E17984C1B00AE58A3 /* APAstralProjection.m in Sources */,
 				E8AAE45C1799CDE1006C41CD /* APAgentDataSource.m in Sources */,
-				E8AAE46B1799CDF5006C41CD /* NSObject+SBJSON.m in Sources */,
-				E8AAE46C1799CDF5006C41CD /* NSString+SBJSON.m in Sources */,
-				E8AAE46D1799CDF5006C41CD /* SBJSON.m in Sources */,
-				E8AAE46E1799CDF5006C41CD /* SBJsonBase.m in Sources */,
-				E8AAE46F1799CDF5006C41CD /* SBJsonParser.m in Sources */,
-				E8AAE4701799CDF5006C41CD /* SBJsonWriter.m in Sources */,
 				E85B4BC817E6387E003E9BE2 /* APHeading.m in Sources */,
 				E85B4BC917E6387E003E9BE2 /* APLocation.m in Sources */,
 			);
@@ -342,15 +295,16 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
-				ARCHS = "$(ARCHS_STANDARD_64_BIT)";
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
 				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_OBJC_ARC = YES;
 				CLANG_WARN_CONSTANT_CONVERSION = YES;
 				CLANG_WARN_EMPTY_BODY = YES;
 				CLANG_WARN_ENUM_CONVERSION = YES;
 				CLANG_WARN_INT_CONVERSION = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
+				ENABLE_TESTABILITY = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu99;
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_ENABLE_OBJC_EXCEPTIONS = YES;
@@ -364,7 +318,7 @@
 				GCC_WARN_ABOUT_RETURN_TYPE = YES;
 				GCC_WARN_UNINITIALIZED_AUTOS = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				MACOSX_DEPLOYMENT_TARGET = 10.6;
+				MACOSX_DEPLOYMENT_TARGET = 10.9;
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = macosx;
 			};
@@ -374,9 +328,9 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
-				ARCHS = "$(ARCHS_STANDARD_64_BIT)";
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
 				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_OBJC_ARC = YES;
 				CLANG_WARN_CONSTANT_CONVERSION = YES;
 				CLANG_WARN_EMPTY_BODY = YES;
 				CLANG_WARN_ENUM_CONVERSION = YES;
@@ -390,7 +344,7 @@
 				GCC_WARN_ABOUT_RETURN_TYPE = YES;
 				GCC_WARN_UNINITIALIZED_AUTOS = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				MACOSX_DEPLOYMENT_TARGET = 10.6;
+				MACOSX_DEPLOYMENT_TARGET = 10.9;
 				SDKROOT = macosx;
 			};
 			name = Release;
@@ -402,6 +356,7 @@
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "APDesktopHost/APDesktopHost-Prefix.pch";
 				INFOPLIST_FILE = "APDesktopHost/APDesktopHost-Info.plist";
+				PRODUCT_BUNDLE_IDENTIFIER = "hu.lkxf.${PRODUCT_NAME:rfc1034identifier}";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				WRAPPER_EXTENSION = app;
 			};
@@ -414,6 +369,7 @@
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "APDesktopHost/APDesktopHost-Prefix.pch";
 				INFOPLIST_FILE = "APDesktopHost/APDesktopHost-Info.plist";
+				PRODUCT_BUNDLE_IDENTIFIER = "hu.lkxf.${PRODUCT_NAME:rfc1034identifier}";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				WRAPPER_EXTENSION = app;
 			};

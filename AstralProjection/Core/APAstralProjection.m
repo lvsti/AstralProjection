@@ -20,11 +20,11 @@ static NSString* const kCallbackThreadKey = @"thread";
 
 @interface APAstralProjection () <APLocationDataDelegate, APHeadingDataDelegate>
 {
-	id<APLocationDataSource> activeLds;
-	id<APHeadingDataSource> activeHds;
+	id<APLocationDataSource> _activeLds;
+	id<APHeadingDataSource> _activeHds;
 	
-	NSMutableDictionary* locationListeners;
-	NSMutableDictionary* headingListeners;
+	NSMutableDictionary* _locationListeners;
+	NSMutableDictionary* _headingListeners;
 }
 
 - (void)startUpdatingLocationForManager:(CLLocationManager*)aManager;
@@ -130,7 +130,7 @@ static APMethodSwizzle swizzledClassMethods[] =
 	Method m;
 	int swizzledMethodCount = sizeof(swizzledClassMethods)/sizeof(swizzledClassMethods[0]);
 	
-	for ( int i = 0; i < swizzledMethodCount; ++i )
+	for (int i = 0; i < swizzledMethodCount; ++i)
 	{
 		m = class_getClassMethod(locMgrClass, sel_registerName(swizzledClassMethods[i].selectorName));
 		*swizzledClassMethods[i].original = method_setImplementation(m, swizzledClassMethods[i].override);
@@ -177,18 +177,11 @@ static APMethodSwizzle swizzledClassMethods[] =
 @end
 
 
-
 #pragma clang diagnostic pop
 
 
 
-
-
 @implementation APAstralProjection
-
-@synthesize delegate;
-@synthesize locationDataSource;
-@synthesize headingDataSource;
 
 
 + (void)initialize
@@ -205,7 +198,7 @@ static APMethodSwizzle swizzledClassMethods[] =
 
 - (void)setDelegate:(id<APAstralProjectionDelegate>)aDelegate
 {
-	delegate = aDelegate;
+	_delegate = aDelegate;
 	apDelegate = aDelegate;
 }
 
@@ -215,19 +208,11 @@ static APMethodSwizzle swizzledClassMethods[] =
 	self = [super init];
 	if (self)
 	{
-		locationListeners = [[NSMutableDictionary alloc] init];
-		headingListeners = [[NSMutableDictionary alloc] init];
+		_locationListeners = [NSMutableDictionary new];
+		_headingListeners = [NSMutableDictionary new];
 	}
 	
 	return self;
-}
-
-
-- (void)dealloc
-{
-	[locationListeners release];
-	[headingListeners release];
-	[super dealloc];
 }
 
 
@@ -235,18 +220,15 @@ static APMethodSwizzle swizzledClassMethods[] =
 {
 	NSValue* wrapper = [NSValue valueWithNonretainedObject:aManager];
 	
-	if ( !locationDataSource || [locationListeners objectForKey:wrapper] )
+	if (!_locationDataSource || _locationListeners[wrapper])
 	{
 		// nothing to do
 		return;
 	}
 	
-	activeLds = [locationDataSource retain];
-	activeLds.locationDataDelegate = self;
-	[locationListeners setObject:[NSMutableDictionary dictionaryWithObjectsAndKeys:
-								  [NSValue valueWithNonretainedObject:[NSThread currentThread]], kCallbackThreadKey,
-								  nil]
-						  forKey:wrapper];
+	_activeLds = _locationDataSource;
+	_activeLds.locationDataDelegate = self;
+    _locationListeners[wrapper] = [@{ kCallbackThreadKey: [NSValue valueWithNonretainedObject:[NSThread currentThread]] } mutableCopy];
 }
 
 
@@ -254,23 +236,18 @@ static APMethodSwizzle swizzledClassMethods[] =
 {
 	NSValue* wrapper = [NSValue valueWithNonretainedObject:aManager];
 
-	if ( ![locationListeners objectForKey:wrapper] )
+	if (!_locationListeners[wrapper])
 	{
 		// nothing to do
 		return;
 	}
 	
-	[locationListeners removeObjectForKey:wrapper];
+	[_locationListeners removeObjectForKey:wrapper];
 
-	if ( [locationListeners count] == 0 )
+	if (_locationListeners.count == 0)
 	{
-		activeLds.locationDataDelegate = nil;
-		[activeLds release];
-		activeLds = nil;
-	}
-	else
-	{
-		[activeLds release];
+		_activeLds.locationDataDelegate = nil;
+		_activeLds = nil;
 	}
 }
 
@@ -279,18 +256,15 @@ static APMethodSwizzle swizzledClassMethods[] =
 {
 	NSValue* wrapper = [NSValue valueWithNonretainedObject:aManager];
 
-	if ( !headingDataSource || [headingListeners objectForKey:wrapper] )
+	if (!_headingDataSource || _headingListeners[wrapper])
 	{
 		// nothing to do
 		return;
 	}
 	
-	activeHds = [headingDataSource retain];
-	activeHds.headingDataDelegate = self;
-	[headingListeners setObject:[NSMutableDictionary dictionaryWithObjectsAndKeys:
-								 [NSValue valueWithNonretainedObject:[NSThread currentThread]], kCallbackThreadKey,
-								 nil]
-						 forKey:wrapper];
+    _activeHds = _headingDataSource;
+	_activeHds.headingDataDelegate = self;
+    _headingListeners[wrapper] = [@{ kCallbackThreadKey: [NSValue valueWithNonretainedObject:[NSThread currentThread]] } mutableCopy];
 }
 
 
@@ -298,79 +272,71 @@ static APMethodSwizzle swizzledClassMethods[] =
 {
 	NSValue* wrapper = [NSValue valueWithNonretainedObject:aManager];
 
-	if ( ![headingListeners objectForKey:wrapper] )
+	if (!_headingListeners[wrapper])
 	{
 		// nothing to do
 		return;
 	}
 	
-	[headingListeners removeObjectForKey:wrapper];
+	[_headingListeners removeObjectForKey:wrapper];
 
-	if ( [headingListeners count] == 0 )
+	if (_headingListeners.count == 0)
 	{
-		activeHds.headingDataDelegate = nil;
-		[activeHds release];
-		activeHds = nil;
-	}
-	else
-	{
-		[activeHds release];
+		_activeHds.headingDataDelegate = nil;
+		_activeHds = nil;
 	}
 }
 
 
 - (APLocation*)lastRegisteredLocationForManager:(CLLocationManager*)aManager
 {
-	NSDictionary* record = [locationListeners objectForKey:[NSValue valueWithNonretainedObject:aManager]];
-	return [record objectForKey:kLastRegisteredValueKey];
+	NSDictionary* record = _locationListeners[[NSValue valueWithNonretainedObject:aManager]];
+	return record[kLastRegisteredValueKey];
 }
 
 
 - (APHeading*)lastRegisteredHeadingForManager:(CLLocationManager*)aManager
 {
-	NSDictionary* record = [headingListeners objectForKey:[NSValue valueWithNonretainedObject:aManager]];
-	return [record objectForKey:kLastRegisteredValueKey];
+	NSDictionary* record = _headingListeners[[NSValue valueWithNonretainedObject:aManager]];
+	return record[kLastRegisteredValueKey];
 }
 
 
 #pragma mark - from APLocationDataDelegate:
 
 
-// -----------------------------------------------------------------------------
-// APAstralProjection::locationDataSource:didUpdateToLocation:fromLocation:
-// -----------------------------------------------------------------------------
 - (void)locationDataSource:(id<APLocationDataSource>)aDataSource
 	   didUpdateToLocation:(APLocation*)aNewLocation
 			  fromLocation:(APLocation*)aOldLocation
 {
-	if ( [CLLocationManager authorizationStatus] != kCLAuthorizationStatusAuthorized ||
-		 ![CLLocationManager locationServicesEnabled] )
+	if ([CLLocationManager authorizationStatus] != kCLAuthorizationStatusAuthorized ||
+		![CLLocationManager locationServicesEnabled])
 	{
 		return;
 	}
 	
-	NSDictionary* currentListeners = [locationListeners copy];
+	NSDictionary* currentListeners = [_locationListeners copy];
 	
-	[currentListeners enumerateKeysAndObjectsUsingBlock:^(id key, NSMutableDictionary* obj, BOOL *stop) {
-		CLLocationManager* locMgr = [key nonretainedObjectValue];
+	[currentListeners enumerateKeysAndObjectsUsingBlock:^(NSValue* key, NSMutableDictionary* obj, BOOL *stop) {
+		CLLocationManager* locMgr = key.nonretainedObjectValue;
 		
-		APLocation* lastLocation = [obj objectForKey:kLastRegisteredValueKey];
-		if ( !lastLocation ||
-			 locMgr.distanceFilter == kCLDistanceFilterNone ||
-			 [aNewLocation distanceFromLocation:lastLocation] >= ABS(locMgr.distanceFilter) )
+		APLocation* lastLocation = obj[kLastRegisteredValueKey];
+		if (!lastLocation ||
+			locMgr.distanceFilter == kCLDistanceFilterNone ||
+			[aNewLocation distanceFromLocation:lastLocation] >= ABS(locMgr.distanceFilter))
 		{
-			[obj setObject:aNewLocation forKey:kLastRegisteredValueKey];
+            obj[kLastRegisteredValueKey] = aNewLocation;
 			
-			NSThread* callbackThread = [[obj objectForKey:kCallbackThreadKey] nonretainedObjectValue];
-			if ( callbackThread == [NSThread currentThread] )
+			NSThread* callbackThread = [obj[kCallbackThreadKey] nonretainedObjectValue];
+			if (callbackThread == [NSThread currentThread])
 			{
-				if ( [locMgr.delegate respondsToSelector:@selector(locationManager:didUpdateLocations:)] )
+				if ([locMgr.delegate respondsToSelector:@selector(locationManager:didUpdateLocations:)])
 				{
 					[locMgr.delegate performSelector:@selector(locationManager:didUpdateLocations:)
 										  withObject:self
-										  withObject:[NSArray arrayWithObject:aNewLocation]];
+										  withObject:@[aNewLocation]];
 				}
-				else if ( [locMgr.delegate respondsToSelector:@selector(locationManager:didUpdateToLocation:fromLocation:)] )
+				else if ([locMgr.delegate respondsToSelector:@selector(locationManager:didUpdateToLocation:fromLocation:)])
 				{
 					// deprecated method
 					[locMgr.delegate locationManager:locMgr
@@ -382,53 +348,45 @@ static APMethodSwizzle swizzledClassMethods[] =
 			{
 				[self performSelector:@selector(updateLocationDelegateWithData:)
 							 onThread:callbackThread
-						   withObject:[NSArray arrayWithObjects:locMgr,aNewLocation,aOldLocation,nil]
+                           withObject:aOldLocation? @[locMgr, aNewLocation, aOldLocation]: @[locMgr, aNewLocation]
 						waitUntilDone:YES];
 			}
 		}
 	}];
-	
-	[currentListeners release];
 }
 
 
-// -----------------------------------------------------------------------------
-// APAstralProjection::updateLocationDelegateWithData:
-// -----------------------------------------------------------------------------
 - (void)updateLocationDelegateWithData:(NSArray*)aLocationData
 {
-	CLLocationManager* locMgr = [aLocationData objectAtIndex:0];
-	if ( [locMgr.delegate respondsToSelector:@selector(locationManager:didUpdateLocations:)] )
+    CLLocationManager* locMgr = aLocationData.firstObject;
+	if ([locMgr.delegate respondsToSelector:@selector(locationManager:didUpdateLocations:)])
 	{
 		[locMgr.delegate performSelector:@selector(locationManager:didUpdateLocations:)
 							  withObject:locMgr
-							  withObject:[NSArray arrayWithObject:[aLocationData objectAtIndex:1]]];
+							  withObject:@[aLocationData[1]]];
 	}
 	else
 	{
 		// deprecated method
 		[locMgr.delegate locationManager:locMgr
-					 didUpdateToLocation:[aLocationData objectAtIndex:1]
-							fromLocation:([aLocationData count]>2)? [aLocationData objectAtIndex:2]: nil];
+					 didUpdateToLocation:aLocationData[1]
+							fromLocation:(aLocationData.count > 2)? aLocationData[2]: nil];
 	}
 }
 
 
-// -----------------------------------------------------------------------------
-// APAstralProjection::locationDataSource:didFailToUpdateLocationWithError:
-// -----------------------------------------------------------------------------
 - (void)locationDataSource:(id<APLocationDataSource>)aDataSource
 	didFailToUpdateLocationWithError:(NSError*)aError
 {
-	NSDictionary* currentListeners = [locationListeners copy];
+	NSDictionary* currentListeners = [_locationListeners copy];
 	
-	[currentListeners enumerateKeysAndObjectsUsingBlock:^(id key, NSMutableDictionary* obj, BOOL *stop) {
-		CLLocationManager* locMgr = [key nonretainedObjectValue];
+	[currentListeners enumerateKeysAndObjectsUsingBlock:^(NSValue* key, NSMutableDictionary* obj, BOOL *stop) {
+		CLLocationManager* locMgr = key.nonretainedObjectValue;
 
-		if ( [locMgr.delegate respondsToSelector:@selector(locationManager:didFailWithError:)] )
+		if ([locMgr.delegate respondsToSelector:@selector(locationManager:didFailWithError:)])
 		{
-			NSThread* callbackThread = [[obj objectForKey:kCallbackThreadKey] nonretainedObjectValue];
-			if ( callbackThread == [NSThread currentThread] )
+			NSThread* callbackThread = [obj[kCallbackThreadKey] nonretainedObjectValue];
+			if (callbackThread == [NSThread currentThread])
 			{
 				[locMgr.delegate locationManager:locMgr
 								didFailWithError:aError];
@@ -437,33 +395,25 @@ static APMethodSwizzle swizzledClassMethods[] =
 			{
 				[self performSelector:@selector(updateLocationDelegateWithError:)
 							 onThread:callbackThread
-						   withObject:[NSArray arrayWithObjects:locMgr, aError, nil]
+						   withObject:@[locMgr, aError]
 						waitUntilDone:YES];
 			}
 		}
 	}];
-	
-	[currentListeners release];
 }
 
 
-// -----------------------------------------------------------------------------
-// APAstralProjection::updateLocationDelegateWithError:
-// -----------------------------------------------------------------------------
 - (void)updateLocationDelegateWithError:(NSArray*)aLocationData
 {
-	CLLocationManager* locMgr = [aLocationData objectAtIndex:0];
+    CLLocationManager* locMgr = aLocationData.firstObject;
 	[locMgr.delegate locationManager:locMgr
-					didFailWithError:[aLocationData objectAtIndex:1]];
+					didFailWithError:aLocationData[1]];
 }
 
 
 #pragma mark - from APHeadingDataDelegate:
 
 
-// -----------------------------------------------------------------------------
-// APAstralProjection::headingDataSource:didUpdateToHeading:
-// -----------------------------------------------------------------------------
 - (void)headingDataSource:(id<APHeadingDataSource>)aDataSource
 	   didUpdateToHeading:(APHeading*)aNewHeading
 {
@@ -475,22 +425,22 @@ static APMethodSwizzle swizzledClassMethods[] =
 		return;
 	}
 
-	NSDictionary* currentListeners = [headingListeners copy];
+	NSDictionary* currentListeners = [_headingListeners copy];
 	
-	[currentListeners enumerateKeysAndObjectsUsingBlock:^(id key, NSMutableDictionary* obj, BOOL *stop) {
+	[currentListeners enumerateKeysAndObjectsUsingBlock:^(NSValue* key, NSMutableDictionary* obj, BOOL *stop) {
 		CLLocationManager* locMgr = [key nonretainedObjectValue];
 		
-		APHeading* lastHeading = [obj objectForKey:kLastRegisteredValueKey];
-		if ( !lastHeading ||
-			 locMgr.headingFilter == kCLHeadingFilterNone ||
-			 ABS(aNewHeading.magneticHeading - lastHeading.magneticHeading) >= ABS(locMgr.headingFilter) )
+		APHeading* lastHeading = obj[kLastRegisteredValueKey];
+		if (!lastHeading ||
+			locMgr.headingFilter == kCLHeadingFilterNone ||
+			ABS(aNewHeading.magneticHeading - lastHeading.magneticHeading) >= ABS(locMgr.headingFilter))
 		{
-			[obj setObject:aNewHeading forKey:kLastRegisteredValueKey];
+            obj[kLastRegisteredValueKey] = aNewHeading;
 			
-			if ( [locMgr.delegate respondsToSelector:@selector(locationManager:didUpdateHeading:)] )
+			if ([locMgr.delegate respondsToSelector:@selector(locationManager:didUpdateHeading:)])
 			{
-				NSThread* callbackThread = [[obj objectForKey:kCallbackThreadKey] nonretainedObjectValue];
-				if ( callbackThread == [NSThread currentThread] )
+				NSThread* callbackThread = [obj[kCallbackThreadKey] nonretainedObjectValue];
+				if (callbackThread == [NSThread currentThread])
 				{
 					[locMgr.delegate performSelector:@selector(locationManager:didUpdateHeading:)
 										  withObject:locMgr
@@ -500,27 +450,22 @@ static APMethodSwizzle swizzledClassMethods[] =
 				{
 					[self performSelector:@selector(updateHeadingDelegateWithHeading:)
 								 onThread:callbackThread
-							   withObject:[NSArray arrayWithObjects:locMgr, aNewHeading, nil]
+							   withObject:@[locMgr, aNewHeading]
 							waitUntilDone:YES];
 				}
 			}
 		}
 	}];
-	
-	[headingListeners release];
 #endif
 }
 
 
-// -----------------------------------------------------------------------------
-// APLocationManager::updateHeadingDelegateWithData:
-// -----------------------------------------------------------------------------
 - (void)updateHeadingDelegateWithData:(NSArray*)aHeadingData
 {
-	CLLocationManager* locMgr = [aHeadingData objectAtIndex:0];
+    CLLocationManager* locMgr = aHeadingData.firstObject;
 	[locMgr.delegate performSelector:@selector(locationManager:didUpdateHeading:)
 						  withObject:locMgr
-						  withObject:[aHeadingData objectAtIndex:1]];
+						  withObject:aHeadingData[1]];
 }
 
 

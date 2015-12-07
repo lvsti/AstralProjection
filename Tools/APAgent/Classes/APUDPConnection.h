@@ -6,17 +6,12 @@
 //
 
 #import <Foundation/Foundation.h>
-#import <netinet/in.h>
 
 
 @interface APUDPConnection : NSObject 
-{
-	int hostSocket;
-	struct sockaddr_in address;
-}
 
-- (void)setAddress:(NSString*)aAddress;
-- (void)setPort:(unsigned short)aPort;
+@property (nonatomic, copy) NSString* ipAddress;
+@property (nonatomic, assign) unsigned short port;
 
 - (void)sendData:(NSData*)aData;
 

@@ -23,207 +23,159 @@ static const NSInteger kThreadStopping = 1;
 static const NSInteger kThreadStopped = 2;
 
 
-typedef enum
+typedef NS_ENUM(NSUInteger, APGPXInterpolationMethod)
 {
 	kAPGPXInterpolationMethodNone,
 	kAPGPXInterpolationMethodLinear
-} APGPXInterpolationMethod;
-
+};
 
 
 @interface APGPXDataSource ()
 {
-	NSArray* waypoints;
-	NSArray* routes;
-	NSArray* tracks;
+	NSArray* _waypoints;
+	NSArray* _routes;
+	NSArray* _tracks;
 	
-	APGPXDataSet activeDataSet;
-	NSUInteger activeSubsetIndex;
+	APGPXDataSet _activeDataSet;
+	NSUInteger _activeSubsetIndex;
 	
-	double timeScale;
-	NSTimeInterval eventFrequency;
-	BOOL autorepeat;
-	NSConditionLock* threadLock;
-	
-	id<APLocationDataDelegate> locationDataDelegate;
+	NSConditionLock* _threadLock;
 }
-
-- (void)getStartDate:(NSDate**)aStartDate andStopDate:(NSDate**)aStopDate;
-- (BOOL)timestamp:(NSDate*)aDate fallsInSegmentFromPoint:(NSDictionary**)aFromPoint
-		  toPoint:(NSDictionary**)aToPoint inPointSet:(NSArray*)aPoints;
-- (APLocation*)locationForDate:(NSDate*)aDate
-			 withInterpolation:(APGPXInterpolationMethod)aMethod;
-- (APLocation*)locationWithPointAtIndex:(NSUInteger)aIndex;
-- (void)eventGeneratorLoop;
 
 @end
 
 
-
 @implementation APGPXDataSource
 
-@synthesize timeScale;
-@synthesize eventFrequency;
-@synthesize locationDataDelegate;
-@synthesize autorepeat;
-
-
-// -----------------------------------------------------------------------------
-// APGPXDataSource::initWithURL:
-// -----------------------------------------------------------------------------
-- (id)initWithURL:(NSURL*)aUrl
+- (id)initWithContentsOfURL:(NSURL*)aURL
 {
-	if ( (self = [super init]) )
+    NSParameterAssert(aURL);
+    self = [super init];
+	if (self)
 	{
-		timeScale = 1.0;
-		eventFrequency = 0.0;
-		autorepeat = NO;
+		_timeScale = 1.0;
+		_eventFrequency = 0.0;
+		_autorepeat = NO;
 		
-		threadLock = [[NSConditionLock alloc] initWithCondition:kThreadStopped];
+		_threadLock = [[NSConditionLock alloc] initWithCondition:kThreadStopped];
 		
-		APGPXParser* gpx = [[APGPXParser alloc] initWithURL:aUrl];
+		APGPXParser* gpx = [[APGPXParser alloc] initWithContentsOfURL:aURL];
 		
-		waypoints = [gpx.waypoints retain];
-		routes = [gpx.routes retain];
-		tracks = [gpx.tracks retain];
-		
-		[gpx release];
+        _waypoints = gpx.waypoints;
+        _routes = gpx.routes;
+        _tracks = gpx.tracks;
 	}
 	
 	return self;
 }
 
 
-// -----------------------------------------------------------------------------
-// APGPXDataSource::dealloc
-// -----------------------------------------------------------------------------
 - (void)dealloc
 {
-	[threadLock lock];
-	if ( [threadLock condition] == kThreadExecuting )
+	[_threadLock lock];
+	if ( [_threadLock condition] == kThreadExecuting )
 	{
-		[threadLock unlockWithCondition:kThreadStopping];
+		[_threadLock unlockWithCondition:kThreadStopping];
 	}
 	else
 	{
-		[threadLock unlock];
+		[_threadLock unlock];
 	}
 
 	
-	[threadLock lockWhenCondition:kThreadStopped];
-	[threadLock unlock];
-	
-	[threadLock release];
-	
-	[waypoints release];
-	[routes release];
-	[tracks release];
-	
-	[super dealloc];
+	[_threadLock lockWhenCondition:kThreadStopped];
+	[_threadLock unlock];
 }
 
 
-#pragma mark -
-#pragma mark new methods:
+#pragma mark - new methods:
 
 
-// -----------------------------------------------------------------------------
-// APGPXDataSource::cardinalityForDataSet:
-// -----------------------------------------------------------------------------
 - (NSUInteger)cardinalityForDataSet:(APGPXDataSet)aDataSet
 {
 	NSUInteger count = 0;
 	
-	switch ( aDataSet )
+	switch (aDataSet)
 	{
 		case kAPGPXDataSetWaypoint: count = 1; break;
-		case kAPGPXDataSetRoute: count = [routes count]; break;
-		case kAPGPXDataSetTrack: count = [tracks count]; break;
+		case kAPGPXDataSetRoute: count = _routes.count; break;
+		case kAPGPXDataSetTrack: count = _tracks.count; break;
 	}
 	
 	return count;
 }
 
 
-// -----------------------------------------------------------------------------
-// APGPXDataSource::setActiveDataSet:subsetIndex:
-// -----------------------------------------------------------------------------
 - (void)setActiveDataSet:(APGPXDataSet)aDataSet subsetIndex:(NSUInteger)aIndex
 {
-	activeDataSet = aDataSet;
+	_activeDataSet = aDataSet;
 	
-	if ( activeDataSet == kAPGPXDataSetRoute && aIndex >= [routes count] )
+	if (_activeDataSet == kAPGPXDataSetRoute && aIndex >= _routes.count)
 	{
 		[NSException raise:NSRangeException
-					format:@"Route data set bounds exceeded (count:%lu, accessed:%lu)",(unsigned long)[routes count],(unsigned long)aIndex];
+					format:@"Route data set bounds exceeded (count:%lu, accessed:%lu)",(unsigned long)_routes.count,(unsigned long)aIndex];
 	}
-	else if ( activeDataSet == kAPGPXDataSetTrack && aIndex >= [tracks count] )
+	else if (_activeDataSet == kAPGPXDataSetTrack && aIndex >= _tracks.count)
 	{
 		[NSException raise:NSRangeException
-					format:@"Track data set bounds exceeded (count:%lu, accessed:%lu)",(unsigned long)[tracks count],(unsigned long)aIndex];
+					format:@"Track data set bounds exceeded (count:%lu, accessed:%lu)",(unsigned long)_tracks.count,(unsigned long)aIndex];
 	}
 
-	activeSubsetIndex = aIndex;
+	_activeSubsetIndex = aIndex;
 }
 
 
-// -----------------------------------------------------------------------------
-// APGPXDataSource::getStartDate:andStopDate:
-// -----------------------------------------------------------------------------
 - (void)getStartDate:(NSDate**)aStartDate andStopDate:(NSDate**)aStopDate
 {
 	NSArray* pointSet = nil;
 	
-	switch ( activeDataSet )
+	switch (_activeDataSet)
 	{
 		case kAPGPXDataSetWaypoint:
 		{
-			pointSet = waypoints; 
+			pointSet = _waypoints; 
 			break;
 		}
 			
 		case kAPGPXDataSetRoute:
 		{
-			pointSet = [routes objectAtIndex:activeSubsetIndex];
+			pointSet = _routes[_activeSubsetIndex];
 			break;
 		}
 			
 		case kAPGPXDataSetTrack:
 		{
-			pointSet = [[tracks objectAtIndex:activeSubsetIndex] objectAtIndex:0];
+			pointSet = _tracks[_activeSubsetIndex][0];
 			break;
 		}
 	}
 
-	if ( [pointSet count] )
+	if (pointSet.count > 0)
 	{
-		if ( aStartDate )
+		if (aStartDate)
 		{
-			*aStartDate = [[pointSet objectAtIndex:0] objectForKey:kGPXPointTime];
+			*aStartDate = pointSet.firstObject[kGPXPointTime];
 		}
 		
-		if ( aStopDate )
+		if (aStopDate)
 		{
-			*aStopDate = [[pointSet lastObject] objectForKey:kGPXPointTime];
+			*aStopDate = pointSet.lastObject[kGPXPointTime];
 		}
 	}
 }
 
 
-// -----------------------------------------------------------------------------
-// APGPXDataSource::timestamp:fallsInSegmentFromPoint:toPoint:inPointSet:
-// -----------------------------------------------------------------------------
 - (BOOL)timestamp:(NSDate*)aDate fallsInSegmentFromPoint:(NSDictionary**)aFromPoint
-		  toPoint:(NSDictionary**)aToPoint inPointSet:(NSArray*)aPoints
+    toPoint:(NSDictionary**)aToPoint inPointSet:(NSArray*)aPoints
 {
 	BOOL segmentFound = NO;
 	
-	for ( int i = 0; i < [aPoints count]; ++i )
+	for (int i = 0; i < aPoints.count; ++i)
 	{
 		*aFromPoint = *aToPoint;
-		*aToPoint = [aPoints objectAtIndex:i];
+		*aToPoint = aPoints[i];
 		
-		if ( [aDate timeIntervalSinceDate:[*aToPoint objectForKey:kGPXPointTime]] < 0 )
+		if ([aDate timeIntervalSinceDate:(*aToPoint)[kGPXPointTime]] < 0)
 		{
 			segmentFound = YES;
 			break;
@@ -234,20 +186,18 @@ typedef enum
 }
 
 
-// -----------------------------------------------------------------------------
-// APGPXDataSource::locationForDate:withInterpolation:
-// -----------------------------------------------------------------------------
 - (APLocation*)locationForDate:(NSDate*)aDate withInterpolation:(APGPXInterpolationMethod)aMethod
 {
 	NSDictionary* fromPoint = nil;
 	NSDictionary* toPoint = nil;
 	
-	switch ( activeDataSet )
+	switch (_activeDataSet)
 	{
 		case kAPGPXDataSetWaypoint:
 		{
-			if ( ![self timestamp:aDate fallsInSegmentFromPoint:&fromPoint toPoint:&toPoint inPointSet:waypoints] ||
-				 !fromPoint )
+			if (![self timestamp:aDate fallsInSegmentFromPoint:&fromPoint
+                         toPoint:&toPoint inPointSet:_waypoints] ||
+				!fromPoint)
 			{
 				fromPoint = toPoint;
 			}
@@ -256,8 +206,8 @@ typedef enum
 
 		case kAPGPXDataSetRoute:
 		{
-			if ( ![self timestamp:aDate fallsInSegmentFromPoint:&fromPoint toPoint:&toPoint
-					   inPointSet:[routes objectAtIndex:activeSubsetIndex]] ||
+			if (![self timestamp:aDate fallsInSegmentFromPoint:&fromPoint
+                         toPoint:&toPoint inPointSet:_routes[_activeSubsetIndex]] ||
 				!fromPoint )
 			{
 				fromPoint = toPoint;
@@ -267,13 +217,13 @@ typedef enum
 		
 		case kAPGPXDataSetTrack:
 		{
-			NSArray* segments = [tracks objectAtIndex:activeSubsetIndex];
-			for ( int s = 0; s < [segments count]; ++s )
+			NSArray* segments = _tracks[_activeSubsetIndex];
+			for (int s = 0; s < segments.count; ++s)
 			{
-				NSArray* points = [segments objectAtIndex:s];
+				NSArray* points = segments[s];
 				
-				if ( ![self timestamp:aDate fallsInSegmentFromPoint:&fromPoint toPoint:&toPoint inPointSet:points] ||
-					!fromPoint )
+				if (![self timestamp:aDate fallsInSegmentFromPoint:&fromPoint toPoint:&toPoint inPointSet:points] ||
+					!fromPoint)
 				{
 					fromPoint = toPoint;
 				}
@@ -290,16 +240,16 @@ typedef enum
 	CLLocationSpeed speed = -1.0;
 	CLLocationDegrees course = -1.0;
 	
-	switch ( aMethod )
+	switch (aMethod)
 	{
 		case kAPGPXInterpolationMethodNone:
 		{
-			latitude = [[fromPoint objectForKey:kGPXPointLatitude] doubleValue];
-			longitude = [[fromPoint objectForKey:kGPXPointLongitude] doubleValue];
+			latitude = [fromPoint[kGPXPointLatitude] doubleValue];
+			longitude = [fromPoint[kGPXPointLongitude] doubleValue];
 			
-			if ( [fromPoint objectForKey:kGPXPointAltitude] )
+			if (fromPoint[kGPXPointAltitude])
 			{
-				altitude = [[fromPoint objectForKey:kGPXPointAltitude] doubleValue];
+				altitude = [fromPoint[kGPXPointAltitude] doubleValue];
 				vAccuracy = kAPGPXDefaultVerticalAccuracy;
 			}
 
@@ -308,24 +258,24 @@ typedef enum
 		
 		case kAPGPXInterpolationMethodLinear:
 		{
-			NSTimeInterval timeDelta = [[toPoint objectForKey:kGPXPointTime] timeIntervalSinceDate:[fromPoint objectForKey:kGPXPointTime]];
+			NSTimeInterval timeDelta = [toPoint[kGPXPointTime] timeIntervalSinceDate:fromPoint[kGPXPointTime]];
 			double progress = 0.0;
 			
-			if ( timeDelta > 0.0 )
+			if (timeDelta > 0.0)
 			{
-				progress = [aDate timeIntervalSinceDate:[fromPoint objectForKey:kGPXPointTime]] / timeDelta;
+				progress = [aDate timeIntervalSinceDate:fromPoint[kGPXPointTime]] / timeDelta;
 			}
 			
 			CLLocationDegrees fromValue;
-			fromValue = [[fromPoint objectForKey:kGPXPointLatitude] doubleValue];
-			latitude = fromValue + progress * ([[toPoint objectForKey:kGPXPointLatitude] doubleValue] - fromValue);
-			fromValue = [[fromPoint objectForKey:kGPXPointLongitude] doubleValue];
-			longitude =  fromValue + progress * ([[toPoint objectForKey:kGPXPointLongitude] doubleValue] - fromValue);
+			fromValue = [fromPoint[kGPXPointLatitude] doubleValue];
+			latitude = fromValue + progress * ([toPoint[kGPXPointLatitude] doubleValue] - fromValue);
+			fromValue = [fromPoint[kGPXPointLongitude] doubleValue];
+			longitude =  fromValue + progress * ([toPoint[kGPXPointLongitude] doubleValue] - fromValue);
 			
-			if ( [fromPoint objectForKey:kGPXPointAltitude] )
+			if ([fromPoint objectForKey:kGPXPointAltitude])
 			{
-				CLLocationDistance fromAlt = [[fromPoint objectForKey:kGPXPointAltitude] doubleValue];
-				altitude = fromAlt + progress * ([[toPoint objectForKey:kGPXPointAltitude] doubleValue] - fromAlt);
+				CLLocationDistance fromAlt = [fromPoint[kGPXPointAltitude] doubleValue];
+				altitude = fromAlt + progress * ([toPoint[kGPXPointAltitude] doubleValue] - fromAlt);
 
 				vAccuracy = kAPGPXDefaultVerticalAccuracy;
 			}
@@ -334,18 +284,17 @@ typedef enum
 		}
 	}
 	
-#if TARGET_OS_IPHONE || __MAC_OS_X_VERSION_MAX_ALLOWED > __MAC_10_6
-	if ( toPoint != fromPoint )
+	if (toPoint != fromPoint)
 	{
-		CLLocation* fromLocation = [[CLLocation alloc] initWithLatitude:[[fromPoint objectForKey:kGPXPointLatitude] doubleValue]
-															  longitude:[[fromPoint objectForKey:kGPXPointLongitude] doubleValue]];
-		CLLocation* toLocation = [[CLLocation alloc] initWithLatitude:[[toPoint objectForKey:kGPXPointLatitude] doubleValue]
-															longitude:[[toPoint objectForKey:kGPXPointLongitude] doubleValue]];
+		CLLocation* fromLocation = [[CLLocation alloc] initWithLatitude:[fromPoint[kGPXPointLatitude] doubleValue]
+															  longitude:[fromPoint[kGPXPointLongitude] doubleValue]];
+		CLLocation* toLocation = [[CLLocation alloc] initWithLatitude:[toPoint[kGPXPointLatitude] doubleValue]
+															longitude:[toPoint[kGPXPointLongitude] doubleValue]];
 
 		// calculate speed if applicable
-		NSTimeInterval timeDelta = [[toPoint objectForKey:kGPXPointTime] timeIntervalSinceDate:[fromPoint objectForKey:kGPXPointTime]];
+		NSTimeInterval timeDelta = [toPoint[kGPXPointTime] timeIntervalSinceDate:fromPoint[kGPXPointTime]];
 		
-		if ( timeDelta > 0.0 )
+		if (timeDelta > 0.0)
 		{
 			speed = [toLocation distanceFromLocation:fromLocation] / timeDelta;
 		}
@@ -360,13 +309,10 @@ typedef enum
 		
 		// course is zero towards the north and grows clockwise, degrees
 		course = -(alpha*180.0/M_PI - 90.0);
-		if ( course < 0 )
+		if (course < 0)
 		{
 			course += 360.0;
 		}
-
-		[toLocation release];
-		[fromLocation release];
 	}
 
 	APLocation* location = [[APLocation alloc] initWithCoordinate:CLLocationCoordinate2DMake(latitude,longitude)
@@ -376,57 +322,44 @@ typedef enum
 														   course:course
 															speed:speed
 														timestamp:aDate];
-#else
 	
-	APLocation* location = [[APLocation alloc] initWithCoordinate:CLLocationCoordinate2DMake(latitude,longitude)
-														 altitude:altitude
-											   horizontalAccuracy:kAPGPXDefaultHorizontalAccuracy
-												 verticalAccuracy:vAccuracy
-														timestamp:aDate];
-	
-#endif
-
-	
-	return [location autorelease];
+    return location;
 }
 
 
-// -----------------------------------------------------------------------------
-// APGPXDataSource::locationWithPointAtIndex:
-// -----------------------------------------------------------------------------
 - (APLocation*)locationWithPointAtIndex:(NSUInteger)aIndex
 {
 	NSDictionary* point = nil;
 	NSDictionary* toPoint = nil;
 	
-	switch ( activeDataSet )
+	switch (_activeDataSet)
 	{
 		case kAPGPXDataSetWaypoint:
 		{
-			if ( aIndex >= [waypoints count] )
+			if (aIndex >= _waypoints.count)
 			{
 				break;
 			}
 			
-			point = [waypoints objectAtIndex:aIndex];
-			if ( aIndex + 1 < [waypoints count] )
+			point = _waypoints[aIndex];
+			if (aIndex + 1 < _waypoints.count)
 			{
-				toPoint = [waypoints objectAtIndex:aIndex+1];
+				toPoint = _waypoints[aIndex+1];
 			}
 			break;
 		}
 			
 		case kAPGPXDataSetRoute:
 		{
-			if ( aIndex >= [[routes objectAtIndex:activeSubsetIndex] count] )
+			if (aIndex >= [_routes[_activeSubsetIndex] count] )
 			{
 				break;
 			}
 
-			point = [[routes objectAtIndex:activeSubsetIndex] objectAtIndex:aIndex];
-			if ( aIndex + 1 < [[routes objectAtIndex:activeSubsetIndex] count] )
+			point = _routes[_activeSubsetIndex][aIndex];
+			if ( aIndex + 1 < [_routes[_activeSubsetIndex] count] )
 			{
-				toPoint = [[routes objectAtIndex:activeSubsetIndex] objectAtIndex:aIndex+1];
+				toPoint = _routes[_activeSubsetIndex][aIndex+1];
 			}
 			
 			break;
@@ -434,44 +367,44 @@ typedef enum
 			
 		case kAPGPXDataSetTrack:
 		{
-			NSArray* segments = [tracks objectAtIndex:activeSubsetIndex];
+			NSArray* segments = _tracks[_activeSubsetIndex];
 			int numPoints = 0;
-			for ( int s = 0; s < [segments count]; ++s )
+			for (int s = 0; s < segments.count; ++s)
 			{
-				NSArray* points = [segments objectAtIndex:s];
+				NSArray* points = segments[s];
 				
-				if ( aIndex < numPoints + [points count] )
+				if (aIndex < numPoints + points.count)
 				{
-					point = [points objectAtIndex:aIndex-numPoints];
-					if ( aIndex-numPoints+1 < [points count] )
+					point = points[aIndex-numPoints];
+					if (aIndex-numPoints+1 < points.count)
 					{
-						toPoint = [points objectAtIndex:aIndex-numPoints+1];
+						toPoint = points[aIndex-numPoints+1];
 					}
 					break;
 				}
 
-				numPoints += [points count];
+				numPoints += points.count;
 			}
 			
 			break;
 		}
 	}
 	
-	if ( !point )
+	if (!point)
 	{
 		return nil;
 	}
 	
-	CLLocationDegrees latitude = [[point objectForKey:kGPXPointLatitude] doubleValue];
-	CLLocationDegrees longitude = [[point objectForKey:kGPXPointLongitude] doubleValue];
+	CLLocationDegrees latitude = [point[kGPXPointLatitude] doubleValue];
+	CLLocationDegrees longitude = [point[kGPXPointLongitude] doubleValue];
 	CLLocationDistance altitude = 0.0;
 	CLLocationAccuracy vAccuracy = kAPGPXInvalidAccuracy;
 	CLLocationSpeed speed = -1.0;
 	CLLocationDegrees course = -1.0;
 	
-	if ( [point objectForKey:kGPXPointAltitude] )
+	if (point[kGPXPointAltitude])
 	{
-		altitude = [[point objectForKey:kGPXPointAltitude] doubleValue];
+		altitude = [point[kGPXPointAltitude] doubleValue];
 		vAccuracy = kAPGPXDefaultVerticalAccuracy;
 	}
 	
@@ -479,17 +412,17 @@ typedef enum
 															 altitude:altitude
 												   horizontalAccuracy:kAPGPXDefaultHorizontalAccuracy
 													 verticalAccuracy:vAccuracy
-															timestamp:[point objectForKey:kGPXPointTime]];
+															timestamp:point[kGPXPointTime]];
 	
-	if ( toPoint )
+	if (toPoint)
 	{
 		CLLocation* toLocation = [[CLLocation alloc] initWithLatitude:[[toPoint objectForKey:kGPXPointLatitude] doubleValue]
 															longitude:[[toPoint objectForKey:kGPXPointLongitude] doubleValue]];
 		
 		// calculate speed if applicable
-		NSTimeInterval timeDelta = [[toPoint objectForKey:kGPXPointTime] timeIntervalSinceDate:[point objectForKey:kGPXPointTime]];
+		NSTimeInterval timeDelta = [toPoint[kGPXPointTime] timeIntervalSinceDate:point[kGPXPointTime]];
 		
-		if ( timeDelta > 0.0 )
+		if (timeDelta > 0.0)
 		{
 			speed = [toLocation distanceFromLocation:tempLocation] / timeDelta;
 		}
@@ -508,8 +441,6 @@ typedef enum
 		{
 			course += 360.0;
 		}
-		
-		[toLocation release];
 	}
 	
 	APLocation* location = [[APLocation alloc] initWithCoordinate:tempLocation.coordinate
@@ -519,22 +450,17 @@ typedef enum
 														   course:course
 															speed:speed
 														timestamp:tempLocation.timestamp];
-	[tempLocation release];
 	
-	return [location autorelease];
+    return location;
 }
 
 
-
-// -----------------------------------------------------------------------------
-// APGPXDataSource::eventGeneratorLoop
-// -----------------------------------------------------------------------------
 - (void)eventGeneratorLoop
 {
-	NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
+    @autoreleasepool {
 	
-	[threadLock lockWhenCondition:kThreadExecuting];
-	[threadLock unlock];
+	[_threadLock lockWhenCondition:kThreadExecuting];
+	[_threadLock unlock];
 	
 	NSDate* virtualStart = nil;
 	NSDate* virtualStop = nil;
@@ -544,60 +470,56 @@ typedef enum
 	APLocation* newLocation = nil;
 	BOOL endPointPassed = NO;
 	NSUInteger pointIndex = 0;
-	double safeTimeScale = timeScale? timeScale: 1.0;
-	NSTimeInterval safeEventFrequency = (eventFrequency >= 0.0)? eventFrequency: 0.0;
-	BOOL safeAutorepeat = autorepeat;
+	double safeTimeScale = _timeScale? _timeScale: 1.0;
+	NSTimeInterval safeEventFrequency = (_eventFrequency >= 0.0)? _eventFrequency: 0.0;
+	BOOL safeAutorepeat = _autorepeat;
 	
-	NSAutoreleasePool* nestedPool = nil;
+	NSDate* start = [NSDate date];
 	
-	NSDate* start = [[NSDate date] retain];
-	
-	[threadLock lock];
-	while ( [threadLock condition] != kThreadStopping )
+	[_threadLock lock];
+	while (_threadLock.condition != kThreadStopping)
 	{
-		[threadLock unlock];
+		[_threadLock unlock];
 		
-		[nestedPool release];
-		nestedPool = [[NSAutoreleasePool alloc] init];
+        @autoreleasepool {
 		
-		if ( safeEventFrequency > 0 )
+		if (safeEventFrequency > 0)
 		{
 			// events are generated at a given frequency
 			// to get the current location, we must interpolate between the discrete data points
-			NSDate* now = [[NSDate date] retain];
+            NSDate* now = [NSDate date];
 			NSTimeInterval elapsed = [now timeIntervalSinceDate:start];
 			NSTimeInterval virtualElapsed = elapsed * safeTimeScale;
 			NSDate* virtualNow = [NSDate dateWithTimeInterval:virtualElapsed sinceDate:virtualStart];
 
-			if ( [virtualNow timeIntervalSinceDate:virtualStop] > 0 )
+			if ([virtualNow timeIntervalSinceDate:virtualStop] > 0)
 			{
 				// end of recorded interval reached
 				// we still allow one more iteration to ensure the endpoint is sent to the delegate
-				if ( endPointPassed )
+				if (endPointPassed)
 				{
 					// safety iteration is done
-					if ( !safeAutorepeat )
+					if (!safeAutorepeat)
 					{
 						// exit the loop
-						[locationDataDelegate locationDataSource:self
-								didFailToUpdateLocationWithError:[NSError errorWithDomain:kCLErrorDomain
-																					 code:kCLErrorLocationUnknown
-																				 userInfo:nil]];
+                        @autoreleasepool {
+                            [_locationDataDelegate locationDataSource:self
+                                     didFailToUpdateLocationWithError:[NSError errorWithDomain:kCLErrorDomain
+                                                                                          code:kCLErrorLocationUnknown
+                                                                                      userInfo:nil]];
+                        }
 						
-						[threadLock lock];
-						[threadLock unlockWithCondition:kThreadStopping];
+						[_threadLock lock];
+						[_threadLock unlockWithCondition:kThreadStopping];
 					}
 					else
 					{
 						// rewind and restart
 						endPointPassed = NO;
-						[start release];
-						start = [[NSDate date] retain];
+                        start = [NSDate date];
 					}
 
-					[now release];
-
-					[threadLock lock];
+					[_threadLock lock];
 					continue;
 				}
 				else
@@ -606,7 +528,6 @@ typedef enum
 				}
 			}
 			
-			[oldLocation release];
 			oldLocation = newLocation;
 			APLocation* intLocation = [self locationForDate:virtualNow
 										  withInterpolation:kAPGPXInterpolationMethodLinear];
@@ -615,57 +536,47 @@ typedef enum
 //			NSLog(@"%@",newLocation);
 			
 			// notify the location manager
-			[locationDataDelegate locationDataSource:self
+			[_locationDataDelegate locationDataSource:self
 								 didUpdateToLocation:newLocation
 										fromLocation:oldLocation];
 
-			// get rid of garbage before we go to sleep
-			[nestedPool release];
-			nestedPool = nil;
-
 			// sleep until next firing time
 			NSDate* scheduleTime = [[NSDate alloc] initWithTimeInterval:safeEventFrequency sinceDate:now];
-			if ( ![threadLock lockWhenCondition:kThreadStopping beforeDate:scheduleTime] )
+			if (![_threadLock lockWhenCondition:kThreadStopping beforeDate:scheduleTime])
 			{
-				[threadLock lock];
+				[_threadLock lock];
 			}
-			
-			[now release];
-			[scheduleTime release];
 		}
 		else
 		{
 			// event frequency follows actual data set events
-			[oldLocation release];
 			oldLocation = newLocation;
-			newLocation = [[self locationWithPointAtIndex:pointIndex] retain];
+			newLocation = [self locationWithPointAtIndex:pointIndex];
 			
 //			NSLog(@"%@",newLocation);
-			if ( !newLocation )
+			if (!newLocation)
 			{
 				// run out of points
-				if ( !safeAutorepeat )
+				if (!safeAutorepeat)
 				{
 					// exit the loop
-					[locationDataDelegate locationDataSource:self
+					[_locationDataDelegate locationDataSource:self
 							didFailToUpdateLocationWithError:[NSError errorWithDomain:kCLErrorDomain
 																				 code:kCLErrorLocationUnknown
 																			 userInfo:nil]];
 					 
 					
-					[threadLock lock];
-					[threadLock unlockWithCondition:kThreadStopping];
+					[_threadLock lock];
+					[_threadLock unlockWithCondition:kThreadStopping];
 				}
 				else
 				{
 					// rewind and restart
-					[oldLocation release];
 					oldLocation = nil;
-					
 					pointIndex = 0;
 				}
 
-				[threadLock lock];
+				[_threadLock lock];
 				continue;
 			}
 
@@ -674,103 +585,82 @@ typedef enum
 			NSTimeInterval elapsed = virtualElapsed / safeTimeScale;
 			NSDate* scheduleTime = [[NSDate alloc] initWithTimeInterval:elapsed sinceDate:start];
 			
-			if ( [scheduleTime timeIntervalSinceDate:[NSDate date]] > 0 )
+			if ([scheduleTime timeIntervalSinceDate:[NSDate date]] > 0)
 			{
-				// get rid of garbage before we go to sleep
-				[nestedPool release];
-				nestedPool = nil;
-				
-				if ( ![threadLock lockWhenCondition:kThreadStopping beforeDate:scheduleTime] )
+				if (![_threadLock lockWhenCondition:kThreadStopping beforeDate:scheduleTime])
 				{
-					[threadLock lock];
+					[_threadLock lock];
 				}
 			}
 			else
 			{
-				[threadLock lock];
+				[_threadLock lock];
 			}
 
-			[scheduleTime release];
-
-			if ( [threadLock condition] != kThreadStopping )
+			if (_threadLock.condition != kThreadStopping)
 			{
-				[threadLock unlock];
+				[_threadLock unlock];
 				
 				// wrap the delegate call into another autorelease pool because nestedPool can already be released here
-				NSAutoreleasePool* delegatePool = [[NSAutoreleasePool alloc] init];
 				APLocation* tmpLocation = newLocation;
 				newLocation = [[APLocation alloc] initWithLocation:tmpLocation
 														 timestamp:[NSDate date]];
-				[tmpLocation release];
 
-				[locationDataDelegate locationDataSource:self
-									 didUpdateToLocation:newLocation
-											fromLocation:oldLocation];
+                @autoreleasepool {
+                    [_locationDataDelegate locationDataSource:self
+                                          didUpdateToLocation:newLocation
+                                                 fromLocation:oldLocation];
+                }
 				
-				[delegatePool release];
-				
-				[threadLock lock];
+				[_threadLock lock];
 			}
 			++pointIndex;
 		}
+        }
 	}
 	
-	[threadLock unlock];
+	[_threadLock unlock];
 	
 	// put cleanup here
-	[nestedPool release];
-	[oldLocation release];
-	[newLocation release];
-	[start release];
-	
-	[threadLock lock];
-	[threadLock unlockWithCondition:kThreadStopped];
-	
-	[pool release];
+	[_threadLock lock];
+	[_threadLock unlockWithCondition:kThreadStopped];
+    }
 }
 
 
-#pragma mark -
-#pragma mark from APLocationDataSource:
+#pragma mark - from APLocationDataSource:
 
 
-// -----------------------------------------------------------------------------
-// APGPXDataSource::startGeneratingLocationEvents
-// -----------------------------------------------------------------------------
 - (void)startGeneratingLocationEvents
 {
-	[threadLock lock];
-	if ( [threadLock condition] == kThreadStopped )
+	[_threadLock lock];
+	if (_threadLock.condition == kThreadStopped)
 	{
 		[NSThread detachNewThreadSelector:@selector(eventGeneratorLoop)
 								 toTarget:self
 							   withObject:nil];
 		
-		[threadLock unlockWithCondition:kThreadExecuting];
+		[_threadLock unlockWithCondition:kThreadExecuting];
 	}
 	else
 	{
-		[threadLock unlock];
+		[_threadLock unlock];
 	}
 }
 
 
-// -----------------------------------------------------------------------------
-// APGPXDataSource::stopGeneratingLocationEvents
-// -----------------------------------------------------------------------------
 - (void)stopGeneratingLocationEvents
 {
-	[threadLock lock];
-	if ( [threadLock condition] == kThreadExecuting )
+	[_threadLock lock];
+	if (_threadLock.condition == kThreadExecuting)
 	{
-		[threadLock unlockWithCondition:kThreadStopping];
+		[_threadLock unlockWithCondition:kThreadStopping];
 	}
 	else
 	{
-		[threadLock unlock];
+		[_threadLock unlock];
 	}
 }
-
 
 
 @end

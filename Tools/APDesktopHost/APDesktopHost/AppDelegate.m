@@ -13,85 +13,72 @@
 
 @interface AppDelegate () <APAstralProjectionDelegate, CLLocationManagerDelegate>
 {
-	CLLocationManager* locMgr;
-	BOOL isUpdatingLocation;
-	BOOL isDataSourceActive;
-	id<APLocationDataSource> locationDataSource;
+	CLLocationManager* _locMgr;
+	BOOL _isUpdatingLocation;
+	BOOL _isDataSourceActive;
+	id<APLocationDataSource> _locationDataSource;
 }
 
-@property (assign) IBOutlet NSButton *updateButton;
-@property (assign) IBOutlet NSButton *datasourceButton;
-@property (assign) IBOutlet NSTextField *latLabel;
-@property (assign) IBOutlet NSTextField *longLabel;
-@property (assign) IBOutlet NSTextField *altLabel;
+@property (nonatomic, weak) IBOutlet NSButton *updateButton;
+@property (nonatomic, weak) IBOutlet NSButton *datasourceButton;
+@property (nonatomic, weak) IBOutlet NSTextField *latLabel;
+@property (nonatomic, weak) IBOutlet NSTextField *longLabel;
+@property (nonatomic, weak) IBOutlet NSTextField *altLabel;
 
 @end
 
 
 @implementation AppDelegate
 
-@synthesize updateButton;
-@synthesize datasourceButton;
-@synthesize latLabel;
-@synthesize longLabel;
-@synthesize altLabel;
-
 - (void)applicationDidFinishLaunching:(NSNotification *)aNotification
 {
-	APGPXDataSource* gpx = [[[APGPXDataSource alloc] initWithURL:
-							 [NSURL fileURLWithPath:[[NSBundle mainBundle] pathForResource:@"ashland.gpx" ofType:nil]]] autorelease];
+    NSURL* gpxURL = [[NSBundle mainBundle] URLForResource:@"ashland" withExtension:@"gpx"];
+	APGPXDataSource* gpx = [[APGPXDataSource alloc] initWithContentsOfURL:gpxURL];
 	[gpx setActiveDataSet:kAPGPXDataSetTrack subsetIndex:7];
 	gpx.timeScale = 1;
 	gpx.eventFrequency = 0.25;
 	gpx.autorepeat = YES;
 
-	locationDataSource = [gpx retain];
+    _locationDataSource = gpx;
 	[APAstralProjection sharedInstance].delegate = self;
 	[APAstralProjection sharedInstance].locationDataSource = gpx;
 
-	locMgr = [[CLLocationManager alloc] init];
-	locMgr.delegate = self;
-}
-
-
-- (void)dealloc
-{
-	[locationDataSource release];
-    [super dealloc];
+	_locMgr = [CLLocationManager new];
+	_locMgr.delegate = self;
 }
 
 
 - (IBAction)updateButtonClicked:(id)sender
 {
-	if ( !isUpdatingLocation )
+	if (!_isUpdatingLocation)
 	{
-		[updateButton setTitle:@"Stop updates"];
-		[locMgr startUpdatingLocation];
+		_updateButton.title = @"Stop updates";
+		[_locMgr startUpdatingLocation];
 	}
 	else
 	{
-		[updateButton setTitle:@"Start updates"];
-		[locMgr stopUpdatingLocation];
+		_updateButton.title = @"Start updates";
+		[_locMgr stopUpdatingLocation];
 	}
 	
-	isUpdatingLocation = !isUpdatingLocation;
+	_isUpdatingLocation = !_isUpdatingLocation;
 }
 
 
 - (IBAction)datasourceButtonClicked:(id)sender
 {
-	if ( !isDataSourceActive )
+	if (!_isDataSourceActive)
 	{
-		[datasourceButton setTitle:@"Stop datasource"];
+		_datasourceButton.title = @"Stop datasource";
 		[[APAstralProjection sharedInstance].locationDataSource startGeneratingLocationEvents];
 	}
 	else
 	{
-		[datasourceButton setTitle:@"Restart datasource"];
+		_datasourceButton.title = @"Restart datasource";
 		[[APAstralProjection sharedInstance].locationDataSource stopGeneratingLocationEvents];
 	}
 	
-	isDataSourceActive = !isDataSourceActive;
+	_isDataSourceActive = !_isDataSourceActive;
 }
 
 
@@ -111,11 +98,10 @@
 	didUpdateToLocation:(CLLocation *)newLocation
 		   fromLocation:(CLLocation *)oldLocation
 {
-	[latLabel setStringValue:[NSString stringWithFormat:@"%3.5f",newLocation.coordinate.latitude]];
-	[longLabel setStringValue:[NSString stringWithFormat:@"%3.5f",newLocation.coordinate.longitude]];
-	[altLabel setStringValue:[NSString stringWithFormat:@"%4.2f",newLocation.altitude]];
+    _latLabel.stringValue = [NSString stringWithFormat:@"%3.5f",newLocation.coordinate.latitude];
+	_longLabel.stringValue = [NSString stringWithFormat:@"%3.5f",newLocation.coordinate.longitude];
+	_altLabel.stringValue = [NSString stringWithFormat:@"%4.2f",newLocation.altitude];
 }
-
 
 
 @end

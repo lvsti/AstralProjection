@@ -36,61 +36,45 @@ static NSString* const kLastPortKey = @"LastPort";
 @interface APAgentViewController () <CLLocationManagerDelegate, UITextFieldDelegate, APAstralProjectionDelegate>
 #endif
 {
-	CLLocationManager* locationManager;
-	APUDPConnection* udpConnection;
+	CLLocationManager* _locationManager;
+	APUDPConnection* _udpConnection;
 	
-	BOOL isMonitoringLocation;
-	BOOL isMonitoringHeading;
-	BOOL isSending;
+	BOOL _isMonitoringLocation;
+	BOOL _isMonitoringHeading;
+	BOOL _isSending;
 	
-	NSDictionary* lastMessage;
-	NSDateFormatter* dateFmt;
+	NSDictionary* _lastMessage;
+	NSDateFormatter* _dateFmt;
 
 #if !LOCATION_HARDWARE_PRESENT
-	id<APLocationDataSource> locationDataSource;
-	id<APHeadingDataSource> headingDataSource;
+	id<APLocationDataSource> _locationDataSource;
+	id<APHeadingDataSource> _headingDataSource;
 #endif
 }
-@property (nonatomic, assign) IBOutlet UITextField* addressField;
-@property (nonatomic, assign) IBOutlet UITextField* portField;
-@property (nonatomic, assign) IBOutlet UIButton* toggleSendingButton;
+@property (nonatomic, weak) IBOutlet UITextField* addressField;
+@property (nonatomic, weak) IBOutlet UITextField* portField;
+@property (nonatomic, weak) IBOutlet UIButton* toggleSendingButton;
 
-@property (nonatomic, assign) IBOutlet UILabel* latLabel;
-@property (nonatomic, assign) IBOutlet UILabel* longLabel;
-@property (nonatomic, assign) IBOutlet UILabel* magHeadingLabel;
-@property (nonatomic, assign) IBOutlet UILabel* trueHeadingLabel;
-@property (nonatomic, assign) IBOutlet UISwitch* locationSwitch;
-@property (nonatomic, assign) IBOutlet UISwitch* headingSwitch;
-
-- (IBAction)toggleSendingTapped;
-- (IBAction)locationMonitoringSwitchTapped;
-- (IBAction)headingMonitoringSwitchTapped;
-- (IBAction)triggerSendingTapped;
+@property (nonatomic, weak) IBOutlet UILabel* latLabel;
+@property (nonatomic, weak) IBOutlet UILabel* longLabel;
+@property (nonatomic, weak) IBOutlet UILabel* magHeadingLabel;
+@property (nonatomic, weak) IBOutlet UILabel* trueHeadingLabel;
+@property (nonatomic, weak) IBOutlet UISwitch* locationSwitch;
+@property (nonatomic, weak) IBOutlet UISwitch* headingSwitch;
 
 @end
 
 
 @implementation APAgentViewController
 
-@synthesize addressField;
-@synthesize portField;
-@synthesize toggleSendingButton;
-@synthesize latLabel;
-@synthesize longLabel;
-@synthesize magHeadingLabel;
-@synthesize trueHeadingLabel;
-@synthesize locationSwitch;
-@synthesize headingSwitch;
-
-
 - (id)initWithCoder:(NSCoder*)aDecoder
 {
 	if ( (self = [super initWithCoder:aDecoder]) )
 	{
 #if !LOCATION_HARDWARE_PRESENT
-		APGPXDataSource* gpx = [[[APGPXDataSource alloc] initWithURL:
-								 [NSURL fileURLWithPath:[[NSBundle mainBundle] pathForResource:@"ashland" ofType:@"gpx"]]] autorelease];
-		if ( [gpx cardinalityForDataSet:kAPGPXDataSetTrack] > 7 )
+        NSURL* gpxURL = [[NSBundle mainBundle] URLForResource:@"ashland" withExtension:@"gpx"];
+		APGPXDataSource* gpx = [[APGPXDataSource alloc] initWithContentsOfURL:gpxURL];
+		if ([gpx cardinalityForDataSet:kAPGPXDataSetTrack] > 7)
 		{
 			[gpx setActiveDataSet:kAPGPXDataSetTrack subsetIndex:7];
 		}
@@ -98,7 +82,7 @@ static NSString* const kLastPortKey = @"LastPort";
 		gpx.timeScale = 1.0;
 		gpx.eventFrequency = 0.25;
 		
-		locationDataSource = [gpx retain];
+        _locationDataSource = gpx;
 		[APAstralProjection sharedInstance].locationDataSource = gpx;
 
 		// optionally, set up heading data source here
@@ -108,17 +92,17 @@ static NSString* const kLastPortKey = @"LastPort";
 		[APAstralProjection sharedInstance].delegate = self;
 #endif
 
-		locationManager = [[CLLocationManager alloc] init];
-		locationManager.delegate = self;
+		_locationManager = [CLLocationManager new];
+		_locationManager.delegate = self;
 		
-		udpConnection = [[APUDPConnection alloc] init];
+		_udpConnection = [APUDPConnection new];
 		
-		dateFmt = [[NSDateFormatter alloc] init];
-		[dateFmt setDateFormat:kDateFormat];
+		_dateFmt = [NSDateFormatter new];
+        _dateFmt.dateFormat = kDateFormat;
 
-		isMonitoringLocation = NO;
-		isMonitoringHeading = NO;
-		isSending = NO;
+		_isMonitoringLocation = NO;
+		_isMonitoringHeading = NO;
+		_isSending = NO;
 	}
 	
 	return self;
@@ -128,139 +112,130 @@ static NSString* const kLastPortKey = @"LastPort";
 - (void)dealloc
 {
 #if !LOCATION_HARDWARE_PRESENT
-	[locationDataSource stopGeneratingLocationEvents];
-	[locationDataSource release];
+	[_locationDataSource stopGeneratingLocationEvents];
 	
-	[headingDataSource stopGeneratingHeadingEvents];
-	[headingDataSource release];
+	[_headingDataSource stopGeneratingHeadingEvents];
 #endif
 	
-	[locationManager stopUpdatingLocation];
-	[locationManager stopUpdatingHeading];
-	[locationManager release];
-
-	[udpConnection release];
-	[lastMessage release];
-	[dateFmt release];
-    [super dealloc];
+	[_locationManager stopUpdatingLocation];
+	[_locationManager stopUpdatingHeading];
 }
 
 
 - (void)viewDidLoad
 {
 	NSUserDefaults* prefs = [NSUserDefaults standardUserDefaults];
-	if ( [prefs objectForKey:kLastIPKey] )
+	if ([prefs objectForKey:kLastIPKey])
 	{
-		addressField.text = [prefs objectForKey:kLastIPKey];
-		[udpConnection setAddress:[prefs objectForKey:kLastIPKey]];
+		_addressField.text = [prefs objectForKey:kLastIPKey];
+        _udpConnection.ipAddress = [prefs objectForKey:kLastIPKey];
 	}
 	else
 	{
-		[udpConnection setAddress:@"127.0.0.1"];
+        _udpConnection.ipAddress = @"127.0.0.1";
 	}
 	
 	if ( [prefs objectForKey:kLastPortKey] )
 	{
-		portField.text = [[prefs objectForKey:kLastPortKey] stringValue];
-		[udpConnection setPort:[[prefs objectForKey:kLastPortKey] intValue]];
+		_portField.text = [[prefs objectForKey:kLastPortKey] stringValue];
+		[_udpConnection setPort:[[prefs objectForKey:kLastPortKey] intValue]];
 	}
 	else
 	{
-		[udpConnection setPort:0x6a7e];
+		[_udpConnection setPort:0x6a7e];
 	}
 }
 
 
 - (IBAction)toggleSendingTapped
 {
-	if ( !isSending )
+	if (!_isSending)
 	{
-		[toggleSendingButton setTitle:@"Stop sending" forState:UIControlStateNormal];
-		isSending = YES;
+		[_toggleSendingButton setTitle:@"Stop sending" forState:UIControlStateNormal];
+		_isSending = YES;
 	}
 	else
 	{
-		[toggleSendingButton setTitle:@"Start sending" forState:UIControlStateNormal];
-		isSending = NO;
+		[_toggleSendingButton setTitle:@"Start sending" forState:UIControlStateNormal];
+		_isSending = NO;
 	}
 }
 
 
 - (IBAction)headingMonitoringSwitchTapped
 {
-	if ( headingSwitch.on )
+	if (_headingSwitch.on)
 	{
-		[locationManager startUpdatingHeading];
+		[_locationManager startUpdatingHeading];
 #if !LOCATION_HARDWARE_PRESENT
-		[headingDataSource startGeneratingHeadingEvents];
+		[_headingDataSource startGeneratingHeadingEvents];
 #endif
-		isMonitoringHeading = YES;
+		_isMonitoringHeading = YES;
 	}
 	else
 	{
 #if !LOCATION_HARDWARE_PRESENT
-		[headingDataSource stopGeneratingHeadingEvents];
+		[_headingDataSource stopGeneratingHeadingEvents];
 #endif
-		[locationManager stopUpdatingHeading];
-		isMonitoringHeading = NO;
+		[_locationManager stopUpdatingHeading];
+		_isMonitoringHeading = NO;
 	}
 }
 
 
 - (IBAction)locationMonitoringSwitchTapped
 {
-	if ( locationSwitch.on )
+	if (_locationSwitch.on)
 	{
-		[locationManager startUpdatingLocation];
+		[_locationManager startUpdatingLocation];
 #if !LOCATION_HARDWARE_PRESENT
-		[locationDataSource startGeneratingLocationEvents];
+		[_locationDataSource startGeneratingLocationEvents];
 #endif
-		isMonitoringLocation = YES;
+		_isMonitoringLocation = YES;
 	}
 	else
 	{
 #if !LOCATION_HARDWARE_PRESENT
-		[locationDataSource stopGeneratingLocationEvents];
+		[_locationDataSource stopGeneratingLocationEvents];
 #endif
-		[locationManager stopUpdatingLocation];
-		isMonitoringLocation = NO;
+		[_locationManager stopUpdatingLocation];
+		_isMonitoringLocation = NO;
 	}
 }
 
 
 - (IBAction)triggerSendingTapped
 {
-	if ( lastMessage )
+	if (_lastMessage)
 	{
-		NSData* jsonData = [NSJSONSerialization dataWithJSONObject:lastMessage
+		NSData* jsonData = [NSJSONSerialization dataWithJSONObject:_lastMessage
 														   options:0
 															 error:NULL];
-		[udpConnection sendData:jsonData];
+		[_udpConnection sendData:jsonData];
 	}
 }
 
 
+#pragma mark - from UITextFieldDelegate:
 
-#pragma mark -
-#pragma mark from UITextFieldDelegate:
 
 - (void)textFieldDidEndEditing:(UITextField*)aTextField
 {
 	NSUserDefaults* prefs = [NSUserDefaults standardUserDefaults];
 	
-	if ( aTextField == portField )
+	if (aTextField == _portField)
 	{
-		NSScanner* scanner = [NSScanner scannerWithString:portField.text];
+		NSScanner* scanner = [NSScanner scannerWithString:_portField.text];
 		int value = 0;
 		[scanner scanInt:&value];
 		
-		[udpConnection setPort:value&0xffff];
-		[prefs setObject:[NSNumber numberWithInt:value&0xffff] forKey:kLastPortKey];
+		_udpConnection.port = value & 0xffff;
+        [prefs setInteger:_udpConnection.port forKey:kLastPortKey];
 	}
-	else if ( aTextField == addressField )
+	else if (aTextField == _addressField)
 	{
-		[udpConnection setAddress:addressField.text];
-		[prefs setObject:addressField.text forKey:kLastIPKey];
+		_udpConnection.ipAddress = _addressField.text;
+		[prefs setObject:_addressField.text forKey:kLastIPKey];
 	}
 
 	[prefs synchronize];
@@ -271,19 +246,19 @@ static NSString* const kLastPortKey = @"LastPort";
 {
 	NSUserDefaults* prefs = [NSUserDefaults standardUserDefaults];
 
-	if ( aTextField == portField )
+	if (aTextField == _portField)
 	{
-		NSScanner* scanner = [NSScanner scannerWithString:portField.text];
+		NSScanner* scanner = [NSScanner scannerWithString:_portField.text];
 		int value = 0;
 		[scanner scanInt:&value];
 		
-		[udpConnection setPort:value&0xffff];
-		[prefs setObject:[NSNumber numberWithInt:value&0xffff] forKey:kLastPortKey];
+		_udpConnection.port = value & 0xffff;
+        [prefs setInteger:_udpConnection.port forKey:kLastPortKey];
 	}
-	else if ( aTextField == addressField )
+	else if (aTextField == _addressField)
 	{
-		[udpConnection setAddress:addressField.text];
-		[prefs setObject:addressField.text forKey:kLastIPKey];
+		_udpConnection.ipAddress = _addressField.text;
+		[prefs setObject:_addressField.text forKey:kLastIPKey];
 	}
 	
 	[prefs synchronize];
@@ -319,49 +294,47 @@ static NSString* const kLastPortKey = @"LastPort";
 	didUpdateToLocation:(CLLocation*)aNewLocation
 		   fromLocation:(CLLocation*)aOldLocation
 {
-	latLabel.text = [NSString stringWithFormat:@"%3.5f",aNewLocation.coordinate.latitude];
-	longLabel.text = [NSString stringWithFormat:@"%3.5f",aNewLocation.coordinate.longitude];
+	_latLabel.text = [NSString stringWithFormat:@"%3.5f",aNewLocation.coordinate.latitude];
+	_longLabel.text = [NSString stringWithFormat:@"%3.5f",aNewLocation.coordinate.longitude];
 	
-	if ( isSending )
+	if (_isSending)
 	{
-		NSDictionary* oldDic = [NSDictionary dictionaryWithObjectsAndKeys:
-								[NSNumber numberWithDouble:aOldLocation.coordinate.latitude], @"lat",
-								[NSNumber numberWithDouble:aOldLocation.coordinate.longitude], @"lon",
-								[NSNumber numberWithDouble:aOldLocation.altitude], @"alt",
-								[NSNumber numberWithDouble:aOldLocation.horizontalAccuracy], @"hacc",
-								[NSNumber numberWithDouble:aOldLocation.verticalAccuracy], @"vacc",
-								[dateFmt stringFromDate:aOldLocation.timestamp], @"time",
-								[NSNumber numberWithDouble:aOldLocation.speed], @"spd",
-								[NSNumber numberWithDouble:aOldLocation.course], @"crs",
-								nil];
+        NSDictionary* oldDic = @{
+            @"lat": @(aOldLocation.coordinate.latitude),
+            @"lon": @(aOldLocation.coordinate.longitude),
+            @"alt": @(aOldLocation.altitude),
+            @"hacc": @(aOldLocation.horizontalAccuracy),
+            @"vacc": @(aOldLocation.verticalAccuracy),
+            @"time": [_dateFmt stringFromDate:aOldLocation.timestamp],
+            @"spd": @(aOldLocation.speed),
+            @"crs": @(aOldLocation.course)
+        };
 		
-		NSDictionary* newDic = [NSDictionary dictionaryWithObjectsAndKeys:
-								[NSNumber numberWithDouble:aNewLocation.coordinate.latitude], @"lat",
-								[NSNumber numberWithDouble:aNewLocation.coordinate.longitude], @"lon",
-								[NSNumber numberWithDouble:aNewLocation.altitude], @"alt",
-								[NSNumber numberWithDouble:aNewLocation.horizontalAccuracy], @"hacc",
-								[NSNumber numberWithDouble:aNewLocation.verticalAccuracy], @"vacc",
-								[dateFmt stringFromDate:aNewLocation.timestamp], @"time",
-								[NSNumber numberWithDouble:aNewLocation.speed], @"spd",
-								[NSNumber numberWithDouble:aNewLocation.course], @"crs",
-								nil];
+		NSDictionary* newDic = @{
+            @"lat": @(aNewLocation.coordinate.latitude),
+            @"lon": @(aNewLocation.coordinate.longitude),
+            @"alt": @(aNewLocation.altitude),
+            @"hacc": @(aNewLocation.horizontalAccuracy),
+            @"vacc": @(aNewLocation.verticalAccuracy),
+            @"time": [_dateFmt stringFromDate:aNewLocation.timestamp],
+            @"spd": @(aNewLocation.speed),
+            @"crs": @(aNewLocation.course)
+        };
 		
-		NSDictionary* message = [NSDictionary dictionaryWithObjectsAndKeys:
-								 @"update.location", @"type",
-								 [NSDictionary dictionaryWithObjectsAndKeys:
-								  oldDic, @"old",
-								  newDic, @"new",
-								  nil], @"data",
-								 nil];
+        NSDictionary* message = @{
+            @"type": @"update.location",
+            @"data": @{
+                @"old": oldDic,
+                @"new": newDic,
+        }};
 		
-		[lastMessage release];
-		lastMessage = [message retain];
+		_lastMessage = message;
 		
-		NSData* jsonData = [NSJSONSerialization dataWithJSONObject:lastMessage
+		NSData* jsonData = [NSJSONSerialization dataWithJSONObject:_lastMessage
 														   options:0
 															 error:NULL];
 
-		[udpConnection sendData:jsonData];
+		[_udpConnection sendData:jsonData];
 		NSLog(@"location update sent");
 	}
 }
@@ -370,21 +343,19 @@ static NSString* const kLastPortKey = @"LastPort";
 - (void)locationManager:(CLLocationManager*)aManager
 	   didFailWithError:(NSError*)aError
 {
-	if ( isSending )
+	if (_isSending)
 	{
-		NSDictionary* packet = [NSDictionary dictionaryWithObjectsAndKeys:
-								@"error", @"type",
-								[NSDictionary dictionaryWithObjectsAndKeys:
-								 [NSNumber numberWithInteger:aError.code], @"code",
-								 aError.domain, @"domain",
-								 aError.userInfo, @"userInfo",
-								 nil], @"data",
-								nil];
+		NSDictionary* packet = @{
+            @"type": @"error",
+            @"data": @{@"code": @(aError.code),
+                       @"domain": aError.domain,
+                       @"userInfo": aError.userInfo}
+        };
 		
 		NSData* jsonData = [NSJSONSerialization dataWithJSONObject:packet
 														   options:0
 															 error:NULL];
-		[udpConnection sendData:jsonData];
+		[_udpConnection sendData:jsonData];
 	}
 }
 
@@ -392,25 +363,25 @@ static NSString* const kLastPortKey = @"LastPort";
 - (void)locationManager:(CLLocationManager*)aManager
 	   didUpdateHeading:(CLHeading*)aHeading
 {
-	if ( isSending )
+	if (_isSending)
 	{
-		NSDictionary* packet = [NSDictionary dictionaryWithObjectsAndKeys:
-								@"update.heading", @"type",
-								[NSDictionary dictionaryWithObjectsAndKeys:
-								 [NSNumber numberWithDouble:aHeading.magneticHeading], @"mag",
-								 [NSNumber numberWithDouble:aHeading.trueHeading], @"true",
-								 [NSNumber numberWithDouble:aHeading.headingAccuracy], @"acc",
-								 [dateFmt stringFromDate:aHeading.timestamp], @"time",
-								 [NSNumber numberWithDouble:aHeading.x], @"x",
-								 [NSNumber numberWithDouble:aHeading.y], @"y",
-								 [NSNumber numberWithDouble:aHeading.z], @"z",
-								 nil], @"data",
-								nil];
+		NSDictionary* packet = @{
+            @"type": @"update.heading",
+            @"data": @{
+                @"mag": @(aHeading.magneticHeading),
+                @"true": @(aHeading.trueHeading),
+                @"acc": @(aHeading.headingAccuracy),
+                @"time": [_dateFmt stringFromDate:aHeading.timestamp],
+                @"x": @(aHeading.x),
+                @"y": @(aHeading.y),
+                @"z": @(aHeading.z)
+            }
+        };
 		
 		NSData* jsonData = [NSJSONSerialization dataWithJSONObject:packet
 														   options:0
 															 error:NULL];
-		[udpConnection sendData:jsonData];
+		[_udpConnection sendData:jsonData];
 		NSLog(@"heading update sent");
 	}
 }

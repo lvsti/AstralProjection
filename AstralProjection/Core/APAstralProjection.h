@@ -28,9 +28,9 @@
 
 @interface APAstralProjection : NSObject
 
-@property (nonatomic, assign) id<APAstralProjectionDelegate> delegate;
-@property (nonatomic, assign) id<APLocationDataSource> locationDataSource;
-@property (nonatomic, assign) id<APHeadingDataSource> headingDataSource;
+@property (nonatomic, weak) id<APAstralProjectionDelegate> delegate;
+@property (nonatomic, weak) id<APLocationDataSource> locationDataSource;
+@property (nonatomic, weak) id<APHeadingDataSource> headingDataSource;
 
 + (APAstralProjection*)sharedInstance;
 
